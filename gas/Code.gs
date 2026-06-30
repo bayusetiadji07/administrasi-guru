@@ -797,6 +797,55 @@ function generateExcelExport(menuName, targetKelas) {
           kName ? kName.nama_kelas : ''
         ]);
       });
+  } else if (menuName === 'Presensi') {
+    headers = ['NIS', 'Nama Siswa', 'Kelas', 'Total Hadir', 'Total Sakit', 'Total Izin', 'Total Alfa', 'Persentase Hadir'];
+    var siswa = readData('Siswa');
+    var kelas = readData('Kelas');
+    var presensi = readData('Presensi');
+
+    siswa.filter(function(s) { return !targetKelas || s.kelas_id === targetKelas; })
+      .forEach(function(s) {
+        var k = kelas.find(function(kls) { return kls.id === s.kelas_id; });
+        var pres = presensi.filter(function(p) { return p.siswa_id === s.id; });
+        var hadir = pres.filter(function(p) { return p.status === 'H'; }).length;
+        var sakit = pres.filter(function(p) { return p.status === 'S'; }).length;
+        var izin = pres.filter(function(p) { return p.status === 'I'; }).length;
+        var alfa = pres.filter(function(p) { return p.status === 'A'; }).length;
+        var total = hadir + sakit + izin + alfa;
+        var pct = total > 0 ? Math.round((hadir / total) * 100) : 0;
+        dataRows.push([
+          s.nis || '',
+          s.nama_siswa,
+          k ? k.nama_kelas : '',
+          hadir,
+          sakit,
+          izin,
+          alfa,
+          pct + '%'
+        ]);
+      });
+  } else if (menuName === 'Jadwal') {
+    headers = ['Hari', 'Jam ke', 'Kelas', 'Mata Pelajaran'];
+    var jadwal = readData('Jadwal');
+    var mapel = readData('Mapel');
+    var kelas = readData('Kelas');
+
+    var hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    jadwal.sort(function(a, b) {
+      var hariA = hariOrder.indexOf(a.hari);
+      var hariB = hariOrder.indexOf(b.hari);
+      if (hariA !== hariB) return hariA - hariB;
+      return Number(a.jam_ke) - Number(b.jam_ke);
+    }).forEach(function(j) {
+      var k = kelas.find(function(kls) { return kls.id === j.kelas_id; });
+      var m = mapel.find(function(map) { return map.id === j.mapel_id; });
+      dataRows.push([
+        j.hari,
+        j.jam_ke,
+        k ? k.nama_kelas : '',
+        m ? m.nama_mapel : ''
+      ]);
+    });
   } else if (menuName === 'Nilai') {
     var siswa = readData('Siswa').filter(function(s) { return !targetKelas || s.kelas_id === targetKelas; });
     var mapel = readData('Mapel');
@@ -1168,12 +1217,43 @@ function generateDocxOrPdfExport(menuName, targetKelas, formatType, mapelId, tan
     protaTable.setBorderColor('#9CA3AF');
     protaTable.setBorderWidth(1);
     protaTable.setFontSize(10);
+  } else if (menuName === 'Presensi') {
+    var siswa = readData('Siswa').filter(function(s) { return !targetKelas || s.kelas_id === targetKelas; });
+    var kelas = readData('Kelas');
+    var presensi = readData('Presensi');
+
+    var tableData = [['No', 'NIS', 'Nama Siswa', 'Kelas', 'Total Hadir', 'Total Sakit', 'Total Izin', 'Total Alfa', '% Hadir']];
+    siswa.forEach(function(s, idx) {
+      var k = kelas.find(function(kls) { return kls.id === s.kelas_id; });
+      var pres = presensi.filter(function(p) { return p.siswa_id === s.id; });
+      var hadir = pres.filter(function(p) { return p.status === 'H'; }).length;
+      var sakit = pres.filter(function(p) { return p.status === 'S'; }).length;
+      var izin = pres.filter(function(p) { return p.status === 'I'; }).length;
+      var alfa = pres.filter(function(p) { return p.status === 'A'; }).length;
+      var total = hadir + sakit + izin + alfa;
+      var pct = total > 0 ? Math.round((hadir / total) * 100) : 0;
+      tableData.push([String(idx + 1), s.nis || '', s.nama_siswa, k ? k.nama_kelas : '', String(hadir), String(sakit), String(izin), String(alfa), pct + '%']);
+    });
+    var table = body.appendTable(tableData);
+    table.setBorderColor('#9CA3AF');
+    table.setBorderWidth(1);
+  } else if (menuName === 'Jadwal') {
+    var jadwal = readData('Jadwal');
+    var mapel = readData('Mapel');
+    var kelas = readData('Kelas');
+    var hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    var tableData = [['Hari', 'Jam ke', 'Kelas', 'Mata Pelajaran']];
+    jadwal.sort(function(a, b) { var hariA = hariOrder.indexOf(a.hari); var hariB = hariOrder.indexOf(b.hari); if (hariA !== hariB) return hariA - hariB; return Number(a.jam_ke) - Number(b.jam_ke); }).forEach(function(j) { var k = kelas.find(function(kls) { return kls.id === j.kelas_id; }); var m = mapel.find(function(map) { return map.id === j.mapel_id; }); tableData.push([j.hari || '', j.jam_ke || '', k ? k.nama_kelas : '', m ? m.nama_mapel : '']); });
+    var table = body.appendTable(tableData);
+    table.setBorderColor('#9CA3AF');
+    table.setBorderWidth(1);
+  }
   } else if (menuName === 'Jurnal') {
+    var tableData = [['No', 'Tanggal', 'Kelas', 'Mata Pelajaran', 'Materi & Pembelajaran']];
     var jurnal = readData('Jurnal').filter(function(j) { return !targetKelas || j.kelas_id === targetKelas; });
     var mapel = readData('Mapel');
     var kelas = readData('Kelas');
     
-    var tableData = [['No', 'Tanggal', 'Kelas', 'Mata Pelajaran', 'Materi & Pembelajaran']];
     jurnal.forEach(function(j, idx) {
       var k = kelas.find(function(kls) { return kls.id === j.kelas_id; });
       var m = mapel.find(function(map) { return map.id === j.mapel_id; });

@@ -11,6 +11,8 @@
           <label for="cetak-menu" class="form-label">Pilih Dokumen / Menu</label>
           <select class="form-select" id="cetak-menu" onchange="handleCetakMenuChange()">
             <option value="Siswa">Data Siswa (Induk)</option>
+            <option value="Presensi">Daftar Presensi Siswa</option>
+            <option value="Jadwal">Jadwal Mengajar</option>
             <option value="Jurnal">Jurnal Mengajar Guru (KBM)</option>
             <option value="Nilai">Daftar Nilai Siswa (Formatif/Sumatif)</option>
             <option value="Rpe">Rincian Pekan Efektif (RPE)</option>
@@ -178,6 +180,12 @@
     }
 
     if (menu === 'Siswa') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Presensi') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Jadwal') {
       excelBtn.disabled = false;
       wordBtn.disabled = true;
     } else if (menu === 'Jurnal') {
