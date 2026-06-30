@@ -3,6 +3,13 @@
  * Backend Script (Code.gs)
  */
 
+// ============================================
+// PENGATURAN: Ganti dengan ID Spreadsheet Anda
+// Buka spreadsheet Anda -> Copy URL -> ID ada di antara /d/ dan /edit
+// Contoh: https://docs.google.com/spreadsheets/d/ABC123XYZ/edit -> ID: ABC123XYZ
+// ============================================
+const SPREADSHEET_ID = 'MASUKKAN_ID_SPREADSHEET_ANDA_DISINI';
+
 function doGet(e) {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
@@ -19,19 +26,12 @@ function include(filename) {
  * Mendapatkan Spreadsheet Database.
  */
 function getDb() {
-  try {
-    return SpreadsheetApp.getActiveSpreadsheet();
-  } catch (e) {
-    var props = PropertiesService.getScriptProperties();
-    var ssId = props.getProperty('SPREADSHEET_ID');
-    if (ssId) {
-      return SpreadsheetApp.openById(ssId);
-    } else {
-      var newSs = SpreadsheetApp.create('Database Administrasi Guru');
-      props.setProperty('SPREADSHEET_ID', newSs.getId());
-      return newSs;
-    }
+  // Jika menggunakan spreadsheet eksternal
+  if (SPREADSHEET_ID !== 'MASUKKAN_ID_SPREADSHEET_ANDA_DISINI') {
+    return SpreadsheetApp.openById(SPREADSHEET_ID);
   }
+  // Jika menggunakan spreadsheet yang sama dengan Apps Script
+  return SpreadsheetApp.getActiveSpreadsheet();
 }
 
 /**
