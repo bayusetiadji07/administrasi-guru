@@ -1,0 +1,165 @@
+<!-- Kelas Page Content -->
+<div class="content-card">
+  <div class="card-title-container">
+    <h4>Daftar Kelas</h4>
+    <button class="btn btn-premium" onclick="openKelasModal()">
+      <i class="fa-solid fa-plus me-1"></i> Tambah Kelas
+    </button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-custom align-middle">
+      <thead>
+        <tr>
+          <th>Kode</th>
+          <th>Nama Kelas</th>
+          <th>Wali Kelas</th>
+          <th>Keterangan</th>
+          <th style="width: 120px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="kelas-table-body">
+        <tr>
+          <td colspan="5" class="text-center">Memuat data kelas...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Form Kelas -->
+<div class="modal fade" id="kelasModal" tabindex="-1" aria-labelledby="kelasModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="kelasModalLabel">Form Kelas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="kelas-form">
+          <input type="hidden" id="kelas-id">
+          <div class="mb-3">
+            <label for="kelas-nama" class="form-label">Nama Kelas <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="kelas-nama" required placeholder="Contoh: VII-A">
+          </div>
+          <div class="mb-3">
+            <label for="kelas-wali" class="form-label">Wali Kelas</label>
+            <input type="text" class="form-control" id="kelas-wali" placeholder="Nama Guru Wali Kelas">
+          </div>
+          <div class="mb-3">
+            <label for="kelas-keterangan" class="form-label">Keterangan</label>
+            <textarea class="form-control" id="kelas-keterangan" rows="2" placeholder="Keterangan tambahan"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveKelas()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let kelasModalObj = null;
+
+  async function initKelas() {
+    kelasModalObj = new bootstrap.Modal(document.getElementById('kelasModal'));
+    await loadKelasTable();
+  }
+
+  async function loadKelasTable() {
+    const tbody = document.getElementById('kelas-table-body');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Memuat data kelas...</td></tr>';
+    
+    try {
+      const data = await apiCall('readData', 'Kelas');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada data kelas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${item.id}</strong></td>
+          <td>${item.nama_kelas}</td>
+          <td>${item.wali_kelas || '-'}</td>
+          <td>${item.keterangan || '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" onclick="editKelas('${item.id}', '${item.nama_kelas.replace(/'/g, "\\'")}', '${(item.wali_kelas || '').replace(/'/g, "\\'")}', '${(item.keterangan || '').replace(/'/g, "\\'")}')">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteKelas('${item.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Gagal memuat data kelas.</td></tr>';
+    }
+  }
+
+  function openKelasModal() {
+    document.getElementById('kelas-form').reset();
+    document.getElementById('kelas-id').value = '';
+    document.getElementById('kelasModalLabel').innerText = 'Tambah Kelas Baru';
+    kelasModalObj.show();
+  }
+
+  function editKelas(id, nama, wali, keterangan) {
+    document.getElementById('kelas-id').value = id;
+    document.getElementById('kelas-nama').value = nama;
+    document.getElementById('kelas-wali').value = wali === 'null' ? '' : wali;
+    document.getElementById('kelas-keterangan').value = keterangan === 'null' ? '' : keterangan;
+    document.getElementById('kelasModalLabel').innerText = 'Edit Data Kelas';
+    kelasModalObj.show();
+  }
+
+  async function saveKelas() {
+    const id = document.getElementById('kelas-id').value;
+    const nama = document.getElementById('kelas-nama').value.trim();
+    const wali = document.getElementById('kelas-wali').value.trim();
+    const keterangan = document.getElementById('kelas-keterangan').value.trim();
+
+    if (!nama) {
+      showAlert('warning', 'Nama kelas wajib diisi!');
+      return;
+    }
+
+    const payload = {
+      nama_kelas: nama,
+      wali_kelas: wali,
+      keterangan: keterangan
+    };
+
+    try {
+      if (id) {
+        await apiCall('updateData', 'Kelas', id, payload);
+        showAlert('success', 'Data kelas berhasil diperbarui!');
+      } else {
+        await apiCall('createData', 'Kelas', payload);
+        showAlert('success', 'Kelas baru berhasil ditambahkan!');
+      }
+      kelasModalObj.hide();
+      await loadKelasTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteKelas(id) {
+    if (!confirm('Apakah Anda yakin ingin menghapus kelas ini? Siswa di kelas ini mungkin kehilangan relasi kelas.')) return;
+    
+    try {
+      await apiCall('deleteData', 'Kelas', id);
+      showAlert('success', 'Kelas berhasil dihapus!');
+      await loadKelasTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+</script>

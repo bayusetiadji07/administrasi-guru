@@ -1,0 +1,173 @@
+<!-- Jadwal Page Content -->
+<div class="content-card">
+  <div class="card-title-container">
+    <h4>Jadwal Mengajar Guru (Roster Mingguan)</h4>
+    <span class="text-muted small">Klik pada kolom jam pelajaran untuk menambah atau mengubah jadwal.</span>
+  </div>
+  
+  <div class="table-responsive">
+    <div class="timetable-grid">
+      <!-- Grid Header -->
+      <div class="timetable-header">Jam Ke</div>
+      <div class="timetable-header">Senin</div>
+      <div class="timetable-header">Selasa</div>
+      <div class="timetable-header">Rabu</div>
+      <div class="timetable-header">Kamis</div>
+      <div class="timetable-header">Jumat</div>
+
+      <!-- Generated Rows dynamically in JS (Jam 1 to 10) -->
+      <div id="timetable-body-contents" class="d-contents"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Jadwal Form -->
+<div class="modal fade" id="jadwalModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="jadwalModalLabel">Form Jadwal Mengajar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small" id="jadwal-info-text">Hari: -, Jam Ke: -</p>
+        <form id="jadwal-form">
+          <input type="hidden" id="jadwal-hari">
+          <input type="hidden" id="jadwal-jam">
+          <div class="mb-3">
+            <label for="jadwal-kelas" class="form-label">Pilih Kelas</label>
+            <select class="form-select" id="jadwal-kelas">
+              <option value="">-- Kosongkan Jam Ini --</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="jadwal-mapel" class="form-label">Pilih Mata Pelajaran</label>
+            <select class="form-select" id="jadwal-mapel">
+              <option value="">-- Kosongkan Jam Ini --</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveJadwal()">Simpan Roster</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let jadwalModalObj = null;
+  let classesRoster = [];
+  let mapelsRoster = [];
+  let jadwalRosterCache = [];
+
+  async function initJadwal() {
+    jadwalModalObj = new bootstrap.Modal(document.getElementById('jadwalModal'));
+    
+    // Load metadata
+    try {
+      classesRoster = await apiCall('readData', 'Kelas');
+      mapelsRoster = await apiCall('readData', 'Mapel');
+
+      const classSelect = document.getElementById('jadwal-kelas');
+      const mapelSelect = document.getElementById('jadwal-mapel');
+
+      classSelect.innerHTML = '<option value="">-- Kosongkan Jam Ini --</option>';
+      classesRoster.forEach(c => {
+        classSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+      });
+
+      mapelSelect.innerHTML = '<option value="">-- Kosongkan Jam Ini --</option>';
+      mapelsRoster.forEach(m => {
+        mapelSelect.innerHTML += `<option value="${m.id}">${m.nama_mapel}</option>`;
+      });
+
+      await loadRosterData();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function loadRosterData() {
+    try {
+      jadwalRosterCache = await apiCall('readData', 'Jadwal');
+      renderTimetableGrid();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function renderTimetableGrid() {
+    const gridContainer = document.getElementById('timetable-body-contents');
+    gridContainer.innerHTML = '';
+
+    const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    const totalHours = 10;
+
+    for (let hour = 1; hour <= totalHours; hour++) {
+      // Time label column
+      const timeCell = document.createElement('div');
+      timeCell.className = 'timetable-time-cell';
+      timeCell.innerText = `Jam ${hour}`;
+      gridContainer.appendChild(timeCell);
+
+      // Days columns
+      days.forEach(day => {
+        const item = jadwalRosterCache.find(j => j.hari === day && Number(j.jam_ke) === hour);
+        const cell = document.createElement('div');
+        
+        if (item) {
+          const kName = classesRoster.find(c => c.id === item.kelas_id)?.nama_kelas || '?';
+          const mName = mapelsRoster.find(m => m.id === item.mapel_id)?.nama_mapel || '?';
+          
+          cell.className = 'timetable-cell active-class';
+          cell.innerHTML = `
+            <div class="timetable-cell-title">${mName}</div>
+            <div class="timetable-cell-subtitle"><i class="fa-solid fa-users me-1"></i>Kelas ${kName}</div>
+          `;
+          cell.onclick = () => openJadwalForm(day, hour, item.kelas_id, item.mapel_id);
+        } else {
+          cell.className = 'timetable-cell';
+          cell.innerHTML = `<span class="text-muted small" style="font-size:0.7rem;">(Kosong)</span>`;
+          cell.onclick = () => openJadwalForm(day, hour, '', '');
+        }
+        
+        gridContainer.appendChild(cell);
+      });
+    }
+  }
+
+  function openJadwalForm(hari, jam, kelasId, mapelId) {
+    document.getElementById('jadwal-hari').value = hari;
+    document.getElementById('jadwal-jam').value = jam;
+    document.getElementById('jadwal-kelas').value = kelasId;
+    document.getElementById('jadwal-mapel').value = mapelId;
+    document.getElementById('jadwal-info-text').innerText = `Hari: ${hari} | Jam Ke: ${jam}`;
+    jadwalModalObj.show();
+  }
+
+  async function saveJadwal() {
+    const hari = document.getElementById('jadwal-hari').value;
+    const jam = Number(document.getElementById('jadwal-jam').value);
+    const kelasId = document.getElementById('jadwal-kelas').value;
+    const mapelId = document.getElementById('jadwal-mapel').value;
+
+    const payload = [{
+      hari: hari,
+      jam_ke: jam,
+      kelas_id: kelasId,
+      mapel_id: mapelId
+    }];
+
+    try {
+      await apiCall('saveJadwalBatch', payload);
+      showAlert('success', 'Jadwal pelajaran berhasil diperbarui!');
+      jadwalModalObj.hide();
+      await loadRosterData();
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal memperbarui jadwal.');
+    }
+  }
+</script>

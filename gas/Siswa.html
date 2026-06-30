@@ -1,0 +1,298 @@
+<!-- Siswa Page Content -->
+<div class="row g-4">
+  <!-- Sidebar Filter & Import -->
+  <div class="col-lg-3">
+    <div class="content-card mb-4">
+      <h5 class="fw-bold mb-3">Filter & Aksi</h5>
+      <div class="mb-3">
+        <label for="filter-siswa-kelas" class="form-label">Pilih Kelas</label>
+        <select class="form-select" id="filter-siswa-kelas" onchange="loadSiswaTable()">
+          <option value="">Semua Kelas</option>
+        </select>
+      </div>
+      <hr>
+      <div class="d-grid gap-2">
+        <button class="btn btn-premium" onclick="openSiswaModal()">
+          <i class="fa-solid fa-plus me-1"></i> Tambah Siswa
+        </button>
+        <button class="btn btn-secondary-custom" onclick="document.getElementById('csv-file-input').click()">
+          <i class="fa-solid fa-file-import me-1"></i> Impor CSV
+        </button>
+        <input type="file" id="csv-file-input" style="display:none;" accept=".csv" onchange="handleCSVImport(event)">
+        <small class="text-muted text-center mt-1">Format CSV: NIS, NISN, Nama, Jenis Kelamin(L/P)</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table list -->
+  <div class="col-lg-9">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Daftar Siswa</h4>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="table table-custom align-middle">
+          <thead>
+            <tr>
+              <th>NIS/NISN</th>
+              <th>Nama Siswa</th>
+              <th>L/P</th>
+              <th>Kelas</th>
+              <th style="width: 120px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="siswa-table-body">
+            <tr>
+              <td colspan="5" class="text-center">Memuat data siswa...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Form Siswa -->
+<div class="modal fade" id="siswaModal" tabindex="-1" aria-labelledby="siswaModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="siswaModalLabel">Form Siswa</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="siswa-form">
+          <input type="hidden" id="siswa-id">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="siswa-nis" class="form-label">NIS <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="siswa-nis" required placeholder="10001">
+            </div>
+            <div class="col-md-6">
+              <label for="siswa-nisn" class="form-label">NISN</label>
+              <input type="text" class="form-control" id="siswa-nisn" placeholder="0123456789">
+            </div>
+            <div class="col-12">
+              <label for="siswa-nama" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="siswa-nama" required placeholder="Nama Siswa">
+            </div>
+            <div class="col-md-6">
+              <label for="siswa-kelas" class="form-label">Kelas <span class="text-danger">*</span></label>
+              <select class="form-select" id="siswa-kelas" required>
+                <option value="">Pilih Kelas</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="siswa-gender" class="form-label">Jenis Kelamin <span class="text-danger">*</span></label>
+              <select class="form-select" id="siswa-gender" required>
+                <option value="">Pilih</option>
+                <option value="L">Laki-laki (L)</option>
+                <option value="P">Perempuan (P)</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveSiswa()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let siswaModalObj = null;
+  let classesCache = [];
+
+  async function initSiswa() {
+    siswaModalObj = new bootstrap.Modal(document.getElementById('siswaModal'));
+    
+    // Load classes for dropdowns
+    try {
+      classesCache = await apiCall('readData', 'Kelas');
+      
+      const filterSelect = document.getElementById('filter-siswa-kelas');
+      const formSelect = document.getElementById('siswa-kelas');
+      
+      // Preserve first option
+      filterSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      formSelect.innerHTML = '<option value="">Pilih Kelas</option>';
+      
+      classesCache.forEach(c => {
+        filterSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+        formSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+      });
+    } catch(e) {
+      console.error(e);
+    }
+    
+    await loadSiswaTable();
+  }
+
+  async function loadSiswaTable() {
+    const tbody = document.getElementById('siswa-table-body');
+    const selectedClass = document.getElementById('filter-siswa-kelas').value;
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Memuat data siswa...</td></tr>';
+    
+    try {
+      let data = await apiCall('readData', 'Siswa');
+      if (selectedClass) {
+        data = data.filter(s => s.kelas_id === selectedClass);
+      }
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada data siswa untuk kelas ini.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const clsName = classesCache.find(c => c.id === item.kelas_id)?.nama_kelas || '-';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>
+            <strong>${item.nis}</strong><br>
+            <span class="text-muted small">NISN: ${item.nisn || '-'}</span>
+          </td>
+          <td>${item.nama_siswa}</td>
+          <td><span class="badge ${item.jenis_kelamin === 'L' ? 'bg-primary' : 'bg-danger'}">${item.jenis_kelamin}</span></td>
+          <td><span class="badge bg-secondary">${clsName}</span></td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" onclick="editSiswa('${item.id}', '${item.nis}', '${item.nisn || ''}', '${item.nama_siswa.replace(/'/g, "\\'")}', '${item.kelas_id}', '${item.jenis_kelamin}')">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteSiswa('${item.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Gagal memuat data siswa.</td></tr>';
+    }
+  }
+
+  function openSiswaModal() {
+    document.getElementById('siswa-form').reset();
+    document.getElementById('siswa-id').value = '';
+    document.getElementById('siswaModalLabel').innerText = 'Tambah Siswa Baru';
+    siswaModalObj.show();
+  }
+
+  function editSiswa(id, nis, nisn, nama, kelasId, gender) {
+    document.getElementById('siswa-id').value = id;
+    document.getElementById('siswa-nis').value = nis;
+    document.getElementById('siswa-nisn').value = nisn;
+    document.getElementById('siswa-nama').value = nama;
+    document.getElementById('siswa-kelas').value = kelasId;
+    document.getElementById('siswa-gender').value = gender;
+    document.getElementById('siswaModalLabel').innerText = 'Edit Data Siswa';
+    siswaModalObj.show();
+  }
+
+  async function saveSiswa() {
+    const id = document.getElementById('siswa-id').value;
+    const nis = document.getElementById('siswa-nis').value.trim();
+    const nisn = document.getElementById('siswa-nisn').value.trim();
+    const nama = document.getElementById('siswa-nama').value.trim();
+    const kelasId = document.getElementById('siswa-kelas').value;
+    const gender = document.getElementById('siswa-gender').value;
+
+    if (!nis || !nama || !kelasId || !gender) {
+      showAlert('warning', 'Semua kolom bertanda * wajib diisi!');
+      return;
+    }
+
+    const payload = {
+      nis,
+      nisn,
+      nama_siswa: nama,
+      kelas_id: kelasId,
+      jenis_kelamin: gender
+    };
+
+    try {
+      if (id) {
+        await apiCall('updateData', 'Siswa', id, payload);
+        showAlert('success', 'Data siswa berhasil diperbarui!');
+      } else {
+        await apiCall('createData', 'Siswa', payload);
+        showAlert('success', 'Siswa baru berhasil ditambahkan!');
+      }
+      siswaModalObj.hide();
+      await loadSiswaTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteSiswa(id) {
+    if (!confirm('Apakah Anda yakin ingin menghapus siswa ini?')) return;
+    
+    try {
+      await apiCall('deleteData', 'Siswa', id);
+      showAlert('success', 'Data siswa berhasil dihapus!');
+      await loadSiswaTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Handle CSV Import
+  function handleCSVImport(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const currentClass = document.getElementById('filter-siswa-kelas').value;
+    if (!currentClass) {
+      showAlert('warning', 'Silakan pilih kelas filter di sidebar terlebih dahulu sebagai tujuan kelas impor siswa!');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const text = e.target.result;
+      const lines = text.split('\n');
+      const siswaList = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        // Skip header if matches NIS
+        if (i === 0 && line.toLowerCase().includes('nis')) continue;
+
+        const cols = line.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+        if (cols.length >= 3) {
+          siswaList.push({
+            nis: cols[0],
+            nisn: cols[1] || '',
+            nama_siswa: cols[2],
+            jenis_kelamin: (cols[3] || 'L').toUpperCase(),
+            kelas_id: currentClass
+          });
+        }
+      }
+
+      if (siswaList.length === 0) {
+        showAlert('warning', 'Format CSV tidak valid atau kosong.');
+        return;
+      }
+
+      try {
+        const res = await apiCall('importSiswa', siswaList);
+        showAlert('success', `Berhasil mengimpor ${res.count} siswa ke kelas ini!`);
+        await loadSiswaTable();
+      } catch(err) {
+        showAlert('danger', 'Gagal mengimpor siswa: ' + err.message);
+      }
+      
+      event.target.value = ''; // clear input
+    };
+    reader.readAsText(file);
+  }
+</script>

@@ -1,0 +1,352 @@
+{
+  "Kelas": [
+    {
+      "id": "K001",
+      "nama_kelas": "VII-A",
+      "wali_kelas": "Budi Santoso, S.Pd.",
+      "keterangan": "Kelas Unggulan"
+    },
+    {
+      "id": "K002",
+      "nama_kelas": "VIII-B",
+      "wali_kelas": "Dewi Lestari, S.Pd.",
+      "keterangan": "Kelas Regular"
+    },
+    {
+      "id": "K003",
+      "nama_kelas": "IX-C",
+      "wali_kelas": "Ahmad Fauzi, S.Pd.",
+      "keterangan": "Kelas Regular"
+    }
+  ],
+  "Siswa": [
+    {
+      "id": "S001",
+      "nis": "10001",
+      "nisn": "0123456789",
+      "nama_siswa": "Aditya Pratama",
+      "kelas_id": "K001",
+      "jenis_kelamin": "L"
+    },
+    {
+      "id": "S002",
+      "nis": "10002",
+      "nisn": "0123456790",
+      "nama_siswa": "Budi Raharjo",
+      "kelas_id": "K001",
+      "jenis_kelamin": "L"
+    },
+    {
+      "id": "S003",
+      "nis": "10003",
+      "nisn": "0123456791",
+      "nama_siswa": "Citra Lestari",
+      "kelas_id": "K001",
+      "jenis_kelamin": "P"
+    },
+    {
+      "id": "S004",
+      "nis": "10004",
+      "nisn": "0123456792",
+      "nama_siswa": "Dian Sastro",
+      "kelas_id": "K001",
+      "jenis_kelamin": "P"
+    },
+    {
+      "id": "S005",
+      "nis": "10005",
+      "nisn": "0123456793",
+      "nama_siswa": "Eko Prasetyo",
+      "kelas_id": "K001",
+      "jenis_kelamin": "L"
+    },
+    {
+      "id": "S006",
+      "nis": "10006",
+      "nisn": "0123456794",
+      "nama_siswa": "Fatimah Zahra",
+      "kelas_id": "K002",
+      "jenis_kelamin": "P"
+    },
+    {
+      "id": "S007",
+      "nis": "10007",
+      "nisn": "0123456795",
+      "nama_siswa": "Guntur Wibowo",
+      "kelas_id": "K002",
+      "jenis_kelamin": "L"
+    }
+  ],
+  "Mapel": [
+    {
+      "id": "M001",
+      "nama_mapel": "Matematika",
+      "kkm": 75,
+      "jp_mingguan": 5
+    },
+    {
+      "id": "M002",
+      "nama_mapel": "IPA (Fisika/Biologi)",
+      "kkm": 75,
+      "jp_mingguan": 5
+    },
+    {
+      "id": "M003",
+      "nama_mapel": "Bahasa Indonesia",
+      "kkm": 78,
+      "jp_mingguan": 4
+    },
+    {
+      "id": "M004",
+      "nama_mapel": "Bahasa Inggris",
+      "kkm": 75,
+      "jp_mingguan": 4
+    },
+    {
+      "id": "M005",
+      "nama_mapel": "Informatika",
+      "kkm": 78,
+      "jp_mingguan": 2
+    }
+  ],
+  "Kaldik": [
+    {
+      "tanggal": "2026-07-13",
+      "keterangan": "Hari Pertama Masuk Sekolah",
+      "kategori": "Efektif"
+    },
+    {
+      "tanggal": "2026-08-17",
+      "keterangan": "Hari Kemerdekaan RI",
+      "kategori": "Libur"
+    },
+    {
+      "tanggal": "2026-09-21",
+      "keterangan": "Penilaian Tengah Semester (PTS)",
+      "kategori": "Ujian"
+    },
+    {
+      "tanggal": "2026-09-22",
+      "keterangan": "Penilaian Tengah Semester (PTS)",
+      "kategori": "Ujian"
+    },
+    {
+      "tanggal": "2026-12-14",
+      "keterangan": "Libur Semester Ganjil",
+      "kategori": "Libur"
+    }
+  ],
+  "Prota": [
+    {
+      "id": "PT001",
+      "mapel_id": "M002",
+      "kelas_id": "K002",
+      "semester": "Ganjil",
+      "tujuan_pembelajaran": "Menjelaskan klasifikasi makhluk hidup dan benda berdasarkan karakteristik",
+      "alokasi_jp": 20
+    },
+    {
+      "id": "PT002",
+      "mapel_id": "M002",
+      "kelas_id": "K002",
+      "semester": "Ganjil",
+      "tujuan_pembelajaran": "Menganalisis sistem organisasi kehidupan mulai dari tingkat sel sampai organisme",
+      "alokasi_jp": 15
+    },
+    {
+      "kelas_id": "K001",
+      "mapel_id": "M001",
+      "semester": "Ganjil",
+      "tujuan_pembelajaran": "1.1",
+      "alokasi_jp": 10,
+      "keterangan": "zxadasd",
+      "id": "PT003"
+    }
+  ],
+  "Promes": [
+    {
+      "id": "PR001",
+      "prota_id": "PT001",
+      "bulan_minggu": "Jul-W3",
+      "jp_alokasi": 5
+    },
+    {
+      "id": "PR002",
+      "prota_id": "PT001",
+      "bulan_minggu": "Jul-W4",
+      "jp_alokasi": 5
+    },
+    {
+      "id": "PR003",
+      "prota_id": "PT001",
+      "bulan_minggu": "Aug-W1",
+      "jp_alokasi": 5
+    },
+    {
+      "id": "PR004",
+      "prota_id": "PT003",
+      "bulan_minggu": "Jul-W1",
+      "jp_alokasi": 5
+    },
+    {
+      "id": "PR005",
+      "prota_id": "PT003",
+      "bulan_minggu": "Jul-W2",
+      "jp_alokasi": 5
+    }
+  ],
+  "Rpe": [
+    {
+      "id": "RPE001",
+      "mapel_id": "M002",
+      "kelas_id": "K002",
+      "semester": "Ganjil",
+      "data_json": "{\"pekanBulanan\":{\"Juli\":5,\"Agustus\":4,\"September\":4,\"Oktober\":5,\"November\":4,\"Desember\":5},\"kegiatanLibur\":[{\"bulan\":\"Juli\",\"kegiatan\":\"Libur semester genap TA 2024/2025\",\"pekan\":2},{\"bulan\":\"Desember\",\"kegiatan\":\"Libur semester ganjil TA 2025/2026\",\"pekan\":2}],\"rincianPenggunaan\":[{\"rincian\":\"PBM (Proses Belajar Mengajar)\",\"pekan\":19},{\"rincian\":\"Kegiatan Agustusan/Lomba\",\"pekan\":1},{\"rincian\":\"Sumatif Semester Ganjil + susulan\",\"pekan\":2},{\"rincian\":\"Pengolahan dan entry nilai rapor\",\"pekan\":1}]}"
+    }
+  ],
+  "Jurnal": [
+    {
+      "id": "J001",
+      "tanggal": "2026-07-15",
+      "kelas_id": "K001",
+      "mapel_id": "M001",
+      "materi": "Pengenalan Aljabar",
+      "kegiatan_pembelajaran": "Diskusi kelompok mengenai variabel",
+      "hambatan": "Siswa kesulitan memahami koefisien",
+      "solusi": "Memberikan contoh konkret buah apel dan jeruk"
+    }
+  ],
+  "Presensi": [
+    {
+      "id": "P001",
+      "jurnal_id": "J001",
+      "siswa_id": "S001",
+      "status": "H"
+    },
+    {
+      "id": "P002",
+      "jurnal_id": "J001",
+      "siswa_id": "S002",
+      "status": "H"
+    },
+    {
+      "id": "P003",
+      "jurnal_id": "J001",
+      "siswa_id": "S003",
+      "status": "S"
+    },
+    {
+      "id": "P004",
+      "jurnal_id": "J001",
+      "siswa_id": "S004",
+      "status": "I"
+    },
+    {
+      "id": "P005",
+      "jurnal_id": "J001",
+      "siswa_id": "S005",
+      "status": "A"
+    }
+  ],
+  "Nilai": [
+    {
+      "id": "N001",
+      "siswa_id": "S001",
+      "mapel_id": "M001",
+      "jenis_asesmen": "Tugas",
+      "nilai": 85
+    },
+    {
+      "id": "N002",
+      "siswa_id": "S001",
+      "mapel_id": "M001",
+      "jenis_asesmen": "Formatif",
+      "nilai": 80
+    },
+    {
+      "id": "N003",
+      "siswa_id": "S001",
+      "mapel_id": "M001",
+      "jenis_asesmen": "Sumatif",
+      "nilai": 78
+    },
+    {
+      "id": "N004",
+      "siswa_id": "S002",
+      "mapel_id": "M001",
+      "jenis_asesmen": "Tugas",
+      "nilai": 70
+    },
+    {
+      "id": "N005",
+      "siswa_id": "S002",
+      "mapel_id": "M001",
+      "jenis_asesmen": "Formatif",
+      "nilai": 75
+    },
+    {
+      "id": "N006",
+      "siswa_id": "S001",
+      "mapel_id": "",
+      "jenis_asesmen": "Tugas",
+      "nilai": 70
+    },
+    {
+      "id": "N007",
+      "siswa_id": "S002",
+      "mapel_id": "",
+      "jenis_asesmen": "Tugas",
+      "nilai": 90
+    },
+    {
+      "id": "N008",
+      "siswa_id": "S003",
+      "mapel_id": "",
+      "jenis_asesmen": "Tugas",
+      "nilai": 95
+    },
+    {
+      "id": "N009",
+      "siswa_id": "S004",
+      "mapel_id": "",
+      "jenis_asesmen": "Tugas",
+      "nilai": 60
+    }
+  ],
+  "Jadwal": [
+    {
+      "id": "JW001",
+      "hari": "Senin",
+      "jam_ke": 1,
+      "kelas_id": "K001",
+      "mapel_id": "M001"
+    },
+    {
+      "id": "JW002",
+      "hari": "Senin",
+      "jam_ke": 2,
+      "kelas_id": "K001",
+      "mapel_id": "M001"
+    },
+    {
+      "id": "JW003",
+      "hari": "Selasa",
+      "jam_ke": 3,
+      "kelas_id": "K001",
+      "mapel_id": "M002"
+    },
+    {
+      "id": "JW004",
+      "hari": "Selasa",
+      "jam_ke": 4,
+      "kelas_id": "K001",
+      "mapel_id": "M002"
+    }
+  ],
+  "Settings": [
+    {
+      "key": "asesmen_columns",
+      "value": "{\"\":[\"Tugas\",\"Formatif\",\"Sumatif\",\"PAS\"]}"
+    }
+  ]
+}

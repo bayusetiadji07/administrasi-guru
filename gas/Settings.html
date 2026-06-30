@@ -1,0 +1,318 @@
+<!-- Settings Page Content -->
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Pengaturan Profil & Akademik</h4>
+      </div>
+
+      <form id="settings-form" onsubmit="submitSettings(event)">
+        <!-- Profil Guru -->
+        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user me-2"></i>Profil Guru</h6>
+        <div class="mb-3">
+          <label for="settings-guru" class="form-label">Nama Lengkap Guru <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="settings-guru" required placeholder="Contoh: Budi Santoso, S.Pd.">
+        </div>
+        <div class="mb-4">
+          <label for="settings-nip" class="form-label">Nomor Induk Pegawai (NIP)</label>
+          <input type="text" class="form-control" id="settings-nip" placeholder="Contoh: 198503112009041001">
+        </div>
+
+        <!-- Informasi Sekolah -->
+        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-school me-2"></i>Informasi Sekolah</h6>
+        <div class="mb-3">
+          <label for="settings-nama-sekolah" class="form-label">Nama Sekolah <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="settings-nama-sekolah" required placeholder="Contoh: SMP Negeri 3 Besuki">
+        </div>
+        <div class="mb-3">
+          <label for="settings-kepala-sekolah" class="form-label">Nama Kepala Sekolah</label>
+          <input type="text" class="form-control" id="settings-kepala-sekolah" placeholder="Contoh: Drs. Agus Sugianto">
+        </div>
+        <div class="mb-3">
+          <label for="settings-nip-ks" class="form-label">NIP Kepala Sekolah</label>
+          <input type="text" class="form-control" id="settings-nip-ks" placeholder="Contoh: 196808171994121005">
+        </div>
+        <div class="mb-3">
+          <label for="settings-alamat" class="form-label">Alamat Sekolah</label>
+          <textarea class="form-control" id="settings-alamat" rows="2" placeholder="Contoh: Jalan Raya Besuki No. 12, Besuki, Situbondo"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="settings-telepon" class="form-label">Nomor Telepon / WhatsApp</label>
+          <input type="text" class="form-control" id="settings-telepon" placeholder="Contoh: (0338) 123456">
+        </div>
+        <div class="mb-3">
+          <label for="settings-email" class="form-label">Email Sekolah</label>
+          <input type="email" class="form-control" id="settings-email" placeholder="Contoh: info@smpn3besuki.sch.id">
+        </div>
+
+        <!-- Akademik -->
+        <h6 class="fw-bold text-primary mb-3 mt-4"><i class="fa-solid fa-calendar me-2"></i>Pengaturan Akademik</h6>
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="settings-ta" class="form-label">Tahun Ajaran <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="settings-ta" required placeholder="Contoh: 2026/2027">
+          </div>
+          <div class="col-md-6">
+            <label for="settings-semester" class="form-label">Semester <span class="text-danger">*</span></label>
+            <select class="form-select" id="settings-semester" required>
+              <option value="Ganjil">Ganjil</option>
+              <option value="Genap">Genap</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-premium px-4">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Pengaturan
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <!-- Logo Sekolah -->
+    <div class="content-card mb-4">
+      <div class="card-title-container">
+        <h4>Logo Sekolah & Dinas</h4>
+      </div>
+      <p class="text-muted small mb-3">Unggah logo sekolah dan Dinas Pendidikan untuk kop surat resmi pada dokumen cetak.</p>
+
+      <form id="logo-form">
+        <div class="mb-3">
+          <label for="logo-sekolah" class="form-label">Logo Sekolah</label>
+          <input type="file" class="form-control" id="logo-sekolah" accept="image/*" onchange="previewLogo(this, 'logo-sekolah-preview')">
+          <div class="mt-2 text-center">
+            <img id="logo-sekolah-preview" src="" alt="Preview Logo Sekolah" style="max-height: 80px; display: none;" class="img-thumbnail">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="logo-dinas" class="form-label">Logo Dinas Pendidikan</label>
+          <input type="file" class="form-control" id="logo-dinas" accept="image/*" onchange="previewLogo(this, 'logo-dinas-preview')">
+          <div class="mt-2 text-center">
+            <img id="logo-dinas-preview" src="" alt="Preview Logo Dinas" style="max-height: 80px; display: none;" class="img-thumbnail">
+          </div>
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-primary btn-sm" onclick="saveLogos()">
+            <i class="fa-solid fa-upload me-1"></i> Simpan Logo
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Preview Kop Surat -->
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Preview Kop Surat</h4>
+      </div>
+      <div class="border rounded p-3 bg-light" id="kop-surat-preview">
+        <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+          <img id="preview-logo-dinas" src="" alt="Logo Dinas" style="max-height: 60px; display: none;">
+          <div class="text-center">
+            <p class="mb-0 fw-bold" style="font-size: 0.9rem;">PEMERINTAH PROVINSI JAWA TIMUR</p>
+            <p class="mb-0 fw-bold" style="font-size: 0.85rem;">DINAS PENDIDIKAN</p>
+            <p class="mb-0 fw-bold" id="preview-nama-sekolah">SMP NEGERI 3 BESUKI</p>
+          </div>
+          <img id="preview-logo-sekolah" src="" alt="Logo Sekolah" style="max-height: 60px; display: none;">
+        </div>
+        <hr class="my-2" style="border-top: 2px solid #000;">
+        <p class="mb-0 text-center small" id="preview-alamat">Jalan Raya Besuki No. 12, Besuki, Situbondo | Telp: (0338) 123456</p>
+      </div>
+    </div>
+
+    <div class="content-card mt-4">
+      <div class="card-title-container">
+        <h4>Sistem & Pemeliharaan Database</h4>
+      </div>
+
+      <div class="mb-4">
+        <h5>Inisialisasi Ulang Database Sheets</h5>
+        <p class="text-muted small">Jika Anda pertama kali men-deploy aplikasi ini di Google Apps Script, klik tombol di bawah untuk membuat dan menginisialisasi tabel-tabel database di file Google Sheets Anda secara otomatis.</p>
+        <button class="btn btn-danger btn-sm" onclick="triggerDbSetup()">
+          <i class="fa-solid fa-circle-exclamation me-1"></i> Inisialisasi Database Sheet
+        </button>
+      </div>
+
+      <hr>
+
+      <div>
+        <h5>Informasi Lisensi & Sistem</h5>
+        <p class="text-muted small mb-1">Versi Aplikasi: <strong>1.0.0 (Production-ready)</strong></p>
+        <p class="text-muted small mb-0">Platform: <strong>Google Apps Script SPA Shell</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function initSettings() {
+    showSpinner("Memuat konfigurasi global...");
+
+    try {
+      const data = await apiCall('getSettings');
+      document.getElementById('settings-guru').value = data.nama_guru || '';
+      document.getElementById('settings-nip').value = data.nip || '';
+      document.getElementById('settings-nama-sekolah').value = data.nama_sekolah || 'SMP Negeri 3 Besuki';
+      document.getElementById('settings-kepala-sekolah').value = data.kepala_sekolah || '';
+      document.getElementById('settings-nip-ks').value = data.nip_kepala_sekolah || '';
+      document.getElementById('settings-alamat').value = data.alamat || '';
+      document.getElementById('settings-telepon').value = data.telepon || '';
+      document.getElementById('settings-email').value = data.email || '';
+      document.getElementById('settings-ta').value = data.tahun_ajaran || '2026/2027';
+      document.getElementById('settings-semester').value = data.semester || 'Ganjil';
+
+      // Preview kop surat
+      updateKopSuratPreview(data);
+
+      // Logo previews
+      if (data.logo_sekolah) {
+        document.getElementById('logo-sekolah-preview').src = data.logo_sekolah;
+        document.getElementById('logo-sekolah-preview').style.display = 'block';
+        document.getElementById('preview-logo-sekolah').src = data.logo_sekolah;
+        document.getElementById('preview-logo-sekolah').style.display = 'block';
+      }
+      if (data.logo_dinas) {
+        document.getElementById('logo-dinas-preview').src = data.logo_dinas;
+        document.getElementById('logo-dinas-preview').style.display = 'block';
+        document.getElementById('preview-logo-dinas').src = data.logo_dinas;
+        document.getElementById('preview-logo-dinas').style.display = 'block';
+      }
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal memuat pengaturan.');
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function updateKopSuratPreview(data) {
+    const namaSekolah = data.nama_sekolah || 'SMP Negeri 3 Besuki';
+    const alamat = data.alamat || '';
+    const telepon = data.telepon || '';
+    const contactInfo = [alamat, telepon].filter(Boolean).join(' | ');
+
+    document.getElementById('preview-nama-sekolah').textContent = namaSekolah.toUpperCase();
+    document.getElementById('preview-alamat').textContent = contactInfo || 'Alamat belum diisi';
+  }
+
+  function previewLogo(input, previewId) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById(previewId).src = e.target.result;
+        document.getElementById(previewId).style.display = 'block';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  async function saveLogos() {
+    const logoSekolahInput = document.getElementById('logo-sekolah');
+    const logoDinasInput = document.getElementById('logo-dinas');
+
+    const payload = {};
+
+    // Convert logos to base64
+    if (logoSekolahInput.files && logoSekolahInput.files[0]) {
+      payload.logo_sekolah = await fileToBase64(logoSekolahInput.files[0]);
+    }
+    if (logoDinasInput.files && logoDinasInput.files[0]) {
+      payload.logo_dinas = await fileToBase64(logoDinasInput.files[0]);
+    }
+
+    if (Object.keys(payload).length === 0) {
+      showAlert('warning', 'Pilih setidaknya satu logo untuk diunggah.');
+      return;
+    }
+
+    try {
+      await apiCall('saveSettings', payload);
+      showAlert('success', 'Logo berhasil disimpan!');
+
+      // Update preview
+      if (payload.logo_sekolah) {
+        document.getElementById('preview-logo-sekolah').src = payload.logo_sekolah;
+        document.getElementById('preview-logo-sekolah').style.display = 'block';
+      }
+      if (payload.logo_dinas) {
+        document.getElementById('preview-logo-dinas').src = payload.logo_dinas;
+        document.getElementById('preview-logo-dinas').style.display = 'block';
+      }
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal menyimpan logo: ' + e.message);
+    }
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function submitSettings(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('settings-guru').value.trim();
+    const nip = document.getElementById('settings-nip').value.trim();
+    const namaSekolah = document.getElementById('settings-nama-sekolah').value.trim();
+    const kepalaSekolah = document.getElementById('settings-kepala-sekolah').value.trim();
+    const nipKs = document.getElementById('settings-nip-ks').value.trim();
+    const alamat = document.getElementById('settings-alamat').value.trim();
+    const telepon = document.getElementById('settings-telepon').value.trim();
+    const email = document.getElementById('settings-email').value.trim();
+    const ta = document.getElementById('settings-ta').value.trim();
+    const semester = document.getElementById('settings-semester').value;
+
+    if (!name || !ta || !semester || !namaSekolah) {
+      showAlert('warning', 'Kolom wajib (*) harus diisi!');
+      return;
+    }
+
+    const payload = {
+      nama_guru: name,
+      nip: nip,
+      nama_sekolah: namaSekolah,
+      kepala_sekolah: kepalaSekolah,
+      nip_kepala_sekolah: nipKs,
+      alamat: alamat,
+      telepon: telepon,
+      email: email,
+      tahun_ajaran: ta,
+      semester: semester
+    };
+
+    try {
+      await apiCall('saveSettings', payload);
+      showAlert('success', 'Pengaturan berhasil disimpan!');
+
+      // Update kop surat preview
+      updateKopSuratPreview(payload);
+
+      // Refresh dashboard
+      await initDashboard();
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal menyimpan pengaturan.');
+    }
+  }
+
+  async function triggerDbSetup() {
+    if (!confirm("Apakah Anda yakin ingin melakukan inisialisasi ulang database? Tindakan ini akan membuat sheet baru jika belum ada.")) return;
+
+    showSpinner("Menginisialisasi tabel database...");
+    try {
+      const msg = await apiCall('initDatabase');
+      showAlert('success', msg);
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal setup database: ' + e.message);
+    } finally {
+      hideSpinner();
+    }
+  }
+</script>

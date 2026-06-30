@@ -1,0 +1,214 @@
+<!-- Jurnal & Presensi Page Content -->
+<div class="content-card">
+  <div class="card-title-container">
+    <h4>Input Jurnal Mengajar & Presensi Siswa</h4>
+  </div>
+
+  <form id="jurnal-presensi-form" onsubmit="submitJurnalPresensi(event)">
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <label for="jurnal-tanggal" class="form-label">Tanggal Kegiatan <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" id="jurnal-tanggal" required>
+      </div>
+      <div class="col-md-4">
+        <label for="jurnal-kelas" class="form-label">Pilih Kelas <span class="text-danger">*</span></label>
+        <select class="form-select" id="jurnal-kelas" required onchange="handleJurnalKelasChange()">
+          <option value="">Pilih Kelas</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label for="jurnal-mapel" class="form-label">Mata Pelajaran <span class="text-danger">*</span></label>
+        <select class="form-select" id="jurnal-mapel" required>
+          <option value="">Pilih Mata Pelajaran</option>
+        </select>
+      </div>
+      <div class="col-md-12">
+        <label for="jurnal-materi" class="form-label">Materi Pokok / TP <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="jurnal-materi" required placeholder="Contoh: Pengenalan Vektor 2 Dimensi">
+      </div>
+      <div class="col-md-12">
+        <label for="jurnal-kegiatan" class="form-label">Kegiatan Pembelajaran <span class="text-danger">*</span></label>
+        <textarea class="form-control" id="jurnal-kegiatan" required rows="2" placeholder="Jelaskan ringkasan aktivitas KBM"></textarea>
+      </div>
+      <div class="col-md-6">
+        <label for="jurnal-hambatan" class="form-label">Hambatan Belajar (Opsional)</label>
+        <textarea class="form-control" id="jurnal-hambatan" rows="2" placeholder="Kendala atau kesulitan siswa saat KBM"></textarea>
+      </div>
+      <div class="col-md-6">
+        <label for="jurnal-solusi" class="form-label">Solusi Tindak Lanjut (Opsional)</label>
+        <textarea class="form-control" id="jurnal-solusi" rows="2" placeholder="Solusi yang diterapkan"></textarea>
+      </div>
+    </div>
+
+    <!-- Student Attendance List Section -->
+    <div class="border-top pt-4 mb-4">
+      <h5 class="fw-bold mb-3"><i class="fa-solid fa-user-check me-2 text-primary"></i>Daftar Kehadiran Siswa</h5>
+      <div class="table-responsive">
+        <table class="table table-custom align-middle">
+          <thead>
+            <tr>
+              <th style="width: 60px;">No</th>
+              <th>Nama Siswa</th>
+              <th style="width: 80px; text-align: center;">L/P</th>
+              <th style="width: 250px; text-align: center;">Kehadiran (H / S / I / A)</th>
+            </tr>
+          </thead>
+          <tbody id="jurnal-siswa-body">
+            <tr>
+              <td colspan="4" class="text-center text-muted">Pilih kelas terlebih dahulu untuk memuat daftar siswa.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <button type="reset" class="btn btn-secondary-custom" onclick="resetJurnalForm()">Reset Form</button>
+      <button type="submit" class="btn btn-premium px-4">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Jurnal & Absensi
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+  let jurnalStudents = [];
+
+  async function initJurnal() {
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('jurnal-tanggal').value = today;
+
+    // Load classes and mapel dropdowns
+    try {
+      const classes = await apiCall('readData', 'Kelas');
+      const mapels = await apiCall('readData', 'Mapel');
+
+      const classSelect = document.getElementById('jurnal-kelas');
+      const mapelSelect = document.getElementById('jurnal-mapel');
+
+      classSelect.innerHTML = '<option value="">Pilih Kelas</option>';
+      classes.forEach(c => {
+        classSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+      });
+
+      mapelSelect.innerHTML = '<option value="">Pilih Mata Pelajaran</option>';
+      mapels.forEach(m => {
+        mapelSelect.innerHTML += `<option value="${m.id}">${m.nama_mapel}</option>`;
+      });
+
+      // Clear student list
+      document.getElementById('jurnal-siswa-body').innerHTML = '<tr><td colspan="4" class="text-center text-muted">Pilih kelas terlebih dahulu untuk memuat daftar siswa.</td></tr>';
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function handleJurnalKelasChange() {
+    const classId = document.getElementById('jurnal-kelas').value;
+    const tbody = document.getElementById('jurnal-siswa-body');
+    
+    if (!classId) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Pilih kelas terlebih dahulu untuk memuat daftar siswa.</td></tr>';
+      jurnalStudents = [];
+      return;
+    }
+
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Memuat daftar siswa...</td></tr>';
+    
+    try {
+      const allSiswa = await apiCall('readData', 'Siswa');
+      jurnalStudents = allSiswa.filter(s => s.kelas_id === classId);
+
+      if (jurnalStudents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-warning">Tidak ada siswa terdaftar di kelas ini.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      jurnalStudents.forEach((student, idx) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${idx + 1}</td>
+          <td><strong>${student.nama_siswa}</strong><br><small class="text-muted">NIS: ${student.nis}</small></td>
+          <td class="text-center"><span class="badge bg-secondary">${student.jenis_kelamin}</span></td>
+          <td>
+            <div class="attendance-radio-group">
+              <input type="radio" name="attendance-${student.id}" id="att-${student.id}-h" class="attendance-btn-radio" value="H" checked>
+              <label for="att-${student.id}-h" class="attendance-label lbl-h">H</label>
+              
+              <input type="radio" name="attendance-${student.id}" id="att-${student.id}-s" class="attendance-btn-radio" value="S">
+              <label for="att-${student.id}-s" class="attendance-label lbl-s">S</label>
+              
+              <input type="radio" name="attendance-${student.id}" id="att-${student.id}-i" class="attendance-btn-radio" value="I">
+              <label for="att-${student.id}-i" class="attendance-label lbl-i">I</label>
+              
+              <input type="radio" name="attendance-${student.id}" id="att-${student.id}-a" class="attendance-btn-radio" value="A">
+              <label for="att-${student.id}-a" class="attendance-label lbl-a">A</label>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Gagal memuat siswa.</td></tr>';
+    }
+  }
+
+  function resetJurnalForm() {
+    document.getElementById('jurnal-presensi-form').reset();
+    initJurnal();
+  }
+
+  async function submitJurnalPresensi(event) {
+    event.preventDefault();
+
+    const tanggal = document.getElementById('jurnal-tanggal').value;
+    const kelasId = document.getElementById('jurnal-kelas').value;
+    const mapelId = document.getElementById('jurnal-mapel').value;
+    const materi = document.getElementById('jurnal-materi').value.trim();
+    const kegiatan = document.getElementById('jurnal-kegiatan').value.trim();
+    const hambatan = document.getElementById('jurnal-hambatan').value.trim();
+    const solusi = document.getElementById('jurnal-solusi').value.trim();
+
+    if (!tanggal || !kelasId || !mapelId || !materi || !kegiatan) {
+      showAlert('warning', 'Mohon lengkapi semua data wajib!');
+      return;
+    }
+
+    if (jurnalStudents.length === 0) {
+      showAlert('warning', 'Daftar siswa kosong!');
+      return;
+    }
+
+    // Get attendance list
+    const presensiList = [];
+    jurnalStudents.forEach(student => {
+      const selectedRadio = document.querySelector(`input[name="attendance-${student.id}"]:checked`);
+      const status = selectedRadio ? selectedRadio.value : 'H';
+      presensiList.push({
+        siswa_id: student.id,
+        status: status
+      });
+    });
+
+    const jurnalPayload = {
+      tanggal,
+      kelas_id: kelasId,
+      mapel_id: mapelId,
+      materi,
+      kegiatan_pembelajaran: kegiatan,
+      hambatan,
+      solusi
+    };
+
+    try {
+      await apiCall('saveJurnalDanPresensi', jurnalPayload, presensiList);
+      showAlert('success', 'Jurnal mengajar dan data presensi berhasil disimpan!');
+      resetJurnalForm();
+    } catch(err) {
+      console.error(err);
+      showAlert('danger', 'Gagal menyimpan: ' + err.message);
+    }
+  }
+</script>

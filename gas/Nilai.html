@@ -1,0 +1,419 @@
+<!-- Nilai Page Content -->
+<div class="row g-4">
+  <!-- Selection Filters -->
+  <div class="col-md-3">
+    <div class="content-card">
+      <h5 class="fw-bold mb-3">Filter Asesmen</h5>
+      <div class="mb-3">
+        <label for="nilai-kelas" class="form-label">Kelas</label>
+        <select class="form-select" id="nilai-kelas" onchange="loadGradebook()">
+          <option value="">Pilih Kelas</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="nilai-mapel" class="form-label">Mata Pelajaran</label>
+        <select class="form-select" id="nilai-mapel" onchange="loadGradebook()">
+          <option value="">Pilih Mapel</option>
+        </select>
+      </div>
+      <hr>
+      <h6 class="fw-bold mb-2"><i class="fa-solid fa-list me-2"></i>Kelola Kolom Penilaian</h6>
+      <p class="text-muted small mb-2">Klik nama kolom untuk mengedit. Default: Tugas, Formatif, Sumatif, PAS</p>
+      <div id="asesmen-cols-list" class="mb-3">
+        <!-- Dynamic columns list -->
+      </div>
+      <div class="input-group mb-2">
+        <input type="text" class="form-control form-control-sm" id="new-asesmen-name" placeholder="Tambah kolom baru...">
+        <button class="btn btn-primary btn-sm" type="button" onclick="addAsesmenColumn()">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+      <hr>
+      <div class="d-grid">
+        <button class="btn btn-premium" id="btn-save-nilai" onclick="saveGradebook()" disabled>
+          <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Semua Nilai
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spreadsheet Gradebook Table -->
+  <div class="col-md-9">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4><i class="fa-solid fa-table me-2"></i>Lembar Nilai</h4>
+        <div class="d-flex gap-2">
+          <span class="badge bg-primary font-monospace" id="gradebook-kkm-info">KKM: -</span>
+          <span class="badge bg-success font-monospace" id="gradebook-cols-count">Kolom: 4</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered spreadsheet-table align-middle table-sm">
+          <thead id="gradebook-header" class="table-dark">
+            <tr>
+              <th class="text-start" style="min-width: 180px;">Nama Siswa</th>
+              <th style="width: 80px;">Tugas</th>
+              <th style="width: 80px;">Formatif</th>
+              <th style="width: 80px;">Sumatif</th>
+              <th style="width: 80px;">PAS</th>
+              <th style="width: 100px;" class="bg-secondary">Rata-rata</th>
+            </tr>
+          </thead>
+          <tbody id="gradebook-tbody">
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                <i class="fa-solid fa-arrow-pointer me-2"></i>Pilih Kelas dan Mata Pelajaran untuk mulai mengisi nilai
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let gradebookStudents = [];
+  let currentMapelKkm = 75;
+  let asesmenColumns = ['Tugas', 'Formatif', 'Sumatif', 'PAS'];
+  let kelasAsesmenMap = {};
+
+  async function initNilai() {
+    try {
+      const classes = await apiCall('readData', 'Kelas');
+      const mapels = await apiCall('readData', 'Mapel');
+      const settings = await apiCall('getSettings');
+
+      const classSelect = document.getElementById('nilai-kelas');
+      const mapelSelect = document.getElementById('nilai-mapel');
+
+      classSelect.innerHTML = '<option value="">Pilih Kelas</option>';
+      classes.forEach(c => {
+        classSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+      });
+
+      mapelSelect.innerHTML = '<option value="">Pilih Mapel</option>';
+      mapels.forEach(m => {
+        mapelSelect.innerHTML += `<option value="${m.id}" data-kkm="${m.kkm}">${m.nama_mapel}</option>`;
+      });
+
+      // Load saved columns config
+      if (settings.asesmen_columns) {
+        try {
+          kelasAsesmenMap = JSON.parse(settings.asesmen_columns);
+        } catch(e) {}
+      }
+
+      renderAsesmenColumnsList();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function renderAsesmenColumnsList() {
+    const listEl = document.getElementById('asesmen-cols-list');
+    listEl.innerHTML = '';
+
+    if (asesmenColumns.length === 0) {
+      listEl.innerHTML = '<p class="text-muted small">Tidak ada kolom. Tambahkan kolom baru.</p>';
+      return;
+    }
+
+    asesmenColumns.forEach((col, idx) => {
+      const item = document.createElement('div');
+      item.className = 'd-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1 bg-white shadow-sm';
+      item.innerHTML = `
+        <div class="d-flex align-items-center gap-2">
+          <i class="fa-solid fa-arrows-alt-v text-muted" style="cursor: grab;" title="Seret untuk urutkan"></i>
+          <span class="badge bg-secondary">${idx + 1}</span>
+          <input type="text" class="form-control form-control-sm border-0 bg-transparent px-1"
+                 value="${col}" style="max-width: 130px; font-weight: 500;"
+                 onchange="updateColumnName(${idx}, this.value)"
+                 onclick="this.select()">
+        </div>
+        <button class="btn btn-sm btn-link text-danger p-0" onclick="removeAsesmenColumn(${idx})" title="Hapus">
+          <i class="fa-solid fa-times-circle"></i>
+        </button>
+      `;
+      listEl.appendChild(item);
+    });
+
+    document.getElementById('gradebook-cols-count').innerText = `Kolom: ${asesmenColumns.length}`;
+  }
+
+  function updateColumnName(idx, newName) {
+    const trimmedName = newName.trim();
+
+    if (!trimmedName) {
+      showAlert('warning', 'Nama kolom tidak boleh kosong!');
+      renderAsesmenColumnsList();
+      return;
+    }
+
+    const exists = asesmenColumns.some((c, i) => i !== idx && c.toLowerCase() === trimmedName.toLowerCase());
+    if (exists) {
+      showAlert('warning', 'Nama "' + trimmedName + '" sudah digunakan!');
+      renderAsesmenColumnsList();
+      return;
+    }
+
+    if (asesmenColumns[idx] !== trimmedName) {
+      asesmenColumns[idx] = trimmedName;
+      showAlert('success', 'Nama kolom diubah ke "' + trimmedName + '"');
+
+      if (document.getElementById('nilai-kelas').value && document.getElementById('nilai-mapel').value) {
+        rebuildGradebookHeader();
+      }
+    }
+  }
+
+  function addAsesmenColumn() {
+    const input = document.getElementById('new-asesmen-name');
+    const name = input.value.trim();
+
+    if (!name) {
+      showAlert('warning', 'Ketik nama kolom baru!');
+      input.focus();
+      return;
+    }
+
+    const exists = asesmenColumns.some(c => c.toLowerCase() === name.toLowerCase());
+    if (exists) {
+      showAlert('warning', 'Kolom "' + name + '" sudah ada!');
+      return;
+    }
+
+    asesmenColumns.push(name);
+    input.value = '';
+    renderAsesmenColumnsList();
+    showAlert('success', 'Kolom "' + name + '" ditambahkan!');
+
+    if (document.getElementById('nilai-kelas').value && document.getElementById('nilai-mapel').value) {
+      rebuildGradebookHeader();
+    }
+  }
+
+  function removeAsesmenColumn(idx) {
+    const colName = asesmenColumns[idx];
+    if (!confirm('Hapus kolom "' + colName + '"?')) return;
+
+    asesmenColumns.splice(idx, 1);
+    renderAsesmenColumnsList();
+
+    if (document.getElementById('nilai-kelas').value && document.getElementById('nilai-mapel').value) {
+      rebuildGradebookHeader();
+    }
+  }
+
+  function rebuildGradebookHeader() {
+    const header = document.getElementById('gradebook-header');
+    let headerHtml = `<tr><th class="text-start" style="min-width: 180px;">Nama Siswa</th>`;
+
+    if (asesmenColumns.length === 0) {
+      headerHtml += `<th class="text-muted">-</th>`;
+    } else {
+      asesmenColumns.forEach(col => {
+        headerHtml += `<th style="width: 80px;">${col}</th>`;
+      });
+    }
+    headerHtml += `<th style="width: 100px;" class="bg-secondary">Rata-rata</th></tr>`;
+    header.innerHTML = headerHtml;
+
+    const tbody = document.getElementById('gradebook-tbody');
+    const rows = tbody.querySelectorAll('tr');
+    const colCount = asesmenColumns.length + 2;
+
+    rows.forEach(row => {
+      if (row.querySelector('.text-muted')) {
+        row.setAttribute('colspan', colCount);
+        return;
+      }
+
+      const studentId = row.querySelector('.grade-input')?.getAttribute('data-student-id');
+      if (!studentId) return;
+
+      const existingInputs = row.querySelectorAll('.grade-input');
+      const values = {};
+      existingInputs.forEach(inp => {
+        values[inp.getAttribute('data-type')] = inp.value;
+      });
+
+      const nameCell = row.cells[0];
+      const avgCell = row.cells[row.cells.length - 1];
+      const studentName = nameCell.querySelector('strong')?.innerText || '';
+      const nis = nameCell.querySelector('.text-muted')?.innerText || '';
+
+      let newRowHtml = `<td class="text-start"><strong>${studentName}</strong><br><small class="text-muted">${nis}</small></td>`;
+
+      if (asesmenColumns.length === 0) {
+        newRowHtml += `<td class="text-muted">-</td>`;
+      } else {
+        asesmenColumns.forEach(col => {
+          const val = values[col] || '';
+          newRowHtml += `<td><input type="number" class="grade-input" data-student-id="${studentId}" data-type="${col}" value="${val}" min="0" max="100" oninput="calculateRowAverage(this)"></td>`;
+        });
+      }
+      newRowHtml += avgCell.outerHTML;
+
+      row.innerHTML = newRowHtml;
+
+      if (asesmenColumns.length > 0) {
+        const newInputs = row.querySelectorAll('.grade-input');
+        updateAverageCell(row.querySelector('.bg-avg-cell'), newInputs);
+      }
+    });
+  }
+
+  async function loadGradebook() {
+    const classId = document.getElementById('nilai-kelas').value;
+    const mapelId = document.getElementById('nilai-mapel').value;
+    const tbody = document.getElementById('gradebook-tbody');
+    const kkmSpan = document.getElementById('gradebook-kkm-info');
+    const header = document.getElementById('gradebook-header');
+
+    if (!classId || !mapelId) {
+      header.innerHTML = `
+        <tr>
+          <th class="text-start" style="min-width: 180px;">Nama Siswa</th>
+          <th style="width: 80px;">Tugas</th>
+          <th style="width: 80px;">Formatif</th>
+          <th style="width: 80px;">Sumatif</th>
+          <th style="width: 80px;">PAS</th>
+          <th style="width: 100px;" class="bg-secondary">Rata-rata</th>
+        </tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-arrow-pointer me-2"></i>Pilih Kelas dan Mata Pelajaran</td></tr>`;
+      document.getElementById('btn-save-nilai').disabled = true;
+      kkmSpan.innerText = 'KKM: -';
+      return;
+    }
+
+    // Load saved columns for this mapel
+    if (kelasAsesmenMap[mapelId] && kelasAsesmenMap[mapelId].length > 0) {
+      asesmenColumns = [...kelasAsesmenMap[mapelId]];
+    } else {
+      asesmenColumns = ['Tugas', 'Formatif', 'Sumatif', 'PAS'];
+    }
+    renderAsesmenColumnsList();
+
+    const selectedMapelOpt = document.querySelector(`#nilai-mapel option[value="${mapelId}"]`);
+    currentMapelKkm = Number(selectedMapelOpt.getAttribute('data-kkm')) || 75;
+    kkmSpan.innerText = `KKM: ${currentMapelKkm}`;
+
+    // Build header
+    let headerHtml = `<tr><th class="text-start" style="min-width: 180px;">Nama Siswa</th>`;
+    asesmenColumns.forEach(col => {
+      headerHtml += `<th style="width: 80px;">${col}</th>`;
+    });
+    headerHtml += `<th style="width: 100px;" class="bg-secondary">Rata-rata</th></tr>`;
+    header.innerHTML = headerHtml;
+
+    const colCount = asesmenColumns.length + 2;
+    tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="text-center py-4"><i class="fa-solid fa-spinner fa-spin me-2"></i>Memuat...</td></tr>';
+
+    try {
+      const allSiswa = await apiCall('readData', 'Siswa');
+      gradebookStudents = allSiswa.filter(s => s.kelas_id === classId);
+      const allNilai = await apiCall('readData', 'Nilai');
+
+      if (gradebookStudents.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="text-center text-warning py-4"><i class="fa-solid fa-user-slash me-2"></i>Tidak ada siswa di kelas ini</td></tr>';
+        document.getElementById('btn-save-nilai').disabled = true;
+        return;
+      }
+
+      tbody.innerHTML = '';
+
+      gradebookStudents.forEach((student) => {
+        const getVal = (type) => {
+          const item = allNilai.find(n => n.siswa_id === student.id && n.mapel_id === mapelId && n.jenis_asesmen === type);
+          return item ? item.nilai : '';
+        };
+
+        let rowHtml = `<tr>
+          <td class="text-start"><strong>${student.nama_siswa}</strong><br><small class="text-muted">NIS: ${student.nis}</small></td>`;
+
+        asesmenColumns.forEach(col => {
+          const val = getVal(col);
+          rowHtml += `<td><input type="number" class="grade-input" data-student-id="${student.id}" data-type="${col}" value="${val}" min="0" max="100" placeholder="-" oninput="calculateRowAverage(this)"></td>`;
+        });
+
+        rowHtml += `<td class="bg-avg-cell fw-bold" id="avg-${student.id}">-</td></tr>`;
+        tbody.innerHTML += rowHtml;
+
+        const row = document.getElementById(`avg-${student.id}`).closest('tr');
+        updateAverageCell(row.querySelector('.bg-avg-cell'), row.querySelectorAll('.grade-input'));
+      });
+
+      document.getElementById('btn-save-nilai').disabled = false;
+    } catch(e) {
+      console.error(e);
+      tbody.innerHTML = '<tr><td colspan="' + colCount + '" class="text-center text-danger py-4"><i class="fa-solid fa-exclamation-triangle me-2"></i>Gagal memuat data</td></tr>';
+    }
+  }
+
+  function calculateRowAverage(inputElement) {
+    const row = inputElement.closest('tr');
+    const avgCell = row.querySelector('.bg-avg-cell');
+    updateAverageCell(avgCell, row.querySelectorAll('.grade-input'));
+  }
+
+  function updateAverageCell(avgCell, inputs) {
+    let sum = 0, count = 0;
+
+    inputs.forEach(input => {
+      const val = parseFloat(input.value);
+      if (!isNaN(val) && input.value !== '') {
+        sum += val;
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      const avg = Math.round(sum / count);
+      avgCell.innerText = avg;
+      avgCell.style.color = avg < currentMapelKkm ? '#dc3545' : '#198754';
+      avgCell.style.fontSize = '0.95rem';
+    } else {
+      avgCell.innerText = '-';
+      avgCell.style.color = 'inherit';
+    }
+  }
+
+  async function saveGradebook() {
+    const mapelId = document.getElementById('nilai-mapel').value;
+    const inputs = document.querySelectorAll('#gradebook-tbody .grade-input');
+    const nilaiList = [];
+
+    inputs.forEach(input => {
+      const studentId = input.getAttribute('data-student-id');
+      const type = input.getAttribute('data-type');
+      const val = input.value.trim();
+
+      if (val !== '') {
+        nilaiList.push({
+          siswa_id: studentId,
+          mapel_id: mapelId,
+          jenis_asesmen: type,
+          nilai: Number(val)
+        });
+      }
+    });
+
+    if (nilaiList.length === 0) {
+      showAlert('warning', 'Belum ada nilai yang diisi!');
+      return;
+    }
+
+    try {
+      kelasAsesmenMap[mapelId] = [...asesmenColumns];
+      await apiCall('saveSettings', { asesmen_columns: JSON.stringify(kelasAsesmenMap) });
+      await apiCall('saveNilaiBatch', nilaiList);
+      showAlert('success', `${nilaiList.length} nilai berhasil disimpan!`);
+      await loadGradebook();
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal menyimpan nilai!');
+    }
+  }
+</script>

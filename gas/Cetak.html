@@ -1,0 +1,238 @@
+<!-- Cetak & Ekspor Page Content -->
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Panel Ekspor Dokumen Resmi</h4>
+      </div>
+
+      <form id="cetak-form" onsubmit="event.preventDefault();">
+        <div class="mb-3">
+          <label for="cetak-menu" class="form-label">Pilih Dokumen / Menu</label>
+          <select class="form-select" id="cetak-menu" onchange="handleCetakMenuChange()">
+            <option value="Siswa">Data Siswa (Induk)</option>
+            <option value="Jurnal">Jurnal Mengajar Guru (KBM)</option>
+            <option value="Nilai">Daftar Nilai Siswa (Formatif/Sumatif)</option>
+            <option value="Rpe">Rincian Pekan Efektif (RPE)</option>
+            <option value="Prota">Program Tahunan (Prota)</option>
+            <option value="Promes">Program Semester (Promes)</option>
+          </select>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-md-6" id="cetak-kelas-container">
+            <label for="cetak-kelas" class="form-label">Pilih Kelas</label>
+            <select class="form-select" id="cetak-kelas">
+              <option value="">Semua Kelas</option>
+            </select>
+          </div>
+          <div class="col-md-6" id="cetak-mapel-container" style="display:none;">
+            <label for="cetak-mapel" class="form-label">Pilih Mapel <span class="text-danger">*</span></label>
+            <select class="form-select" id="cetak-mapel">
+              <!-- Loaded via JS -->
+            </select>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="cetak-tanggal" class="form-label">Tanggal Dokumen</label>
+          <input type="date" class="form-control" id="cetak-tanggal">
+          <small class="text-muted">Tanggal ini akan tercantum di tanda tangan dokumen. Kosongkan untuk menggunakan tanggal hari ini.</small>
+        </div>
+
+        <h5 class="fw-bold mb-3">Pilih Format Unduhan</h5>
+        <div class="row g-2">
+          <div class="col-6">
+            <button class="btn btn-premium w-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2" onclick="triggerExport('excel')" id="btn-export-excel">
+              <i class="fa-solid fa-file-excel fs-4 text-white"></i>
+              <span>Excel (.xlsx)</span>
+            </button>
+          </div>
+          <div class="col-6">
+            <button class="btn btn-primary w-100 py-3 d-flex flex-column align-items-center justify-content-center gap-2" onclick="triggerExport('word')" id="btn-export-word">
+              <i class="fa-solid fa-file-word fs-4 text-white"></i>
+              <span>Word (.docx)</span>
+            </button>
+          </div>
+          <div class="col-12 mt-2">
+            <button class="btn btn-danger w-100 py-3 d-flex align-items-center justify-content-center gap-2" onclick="triggerExport('pdf')">
+              <i class="fa-solid fa-file-pdf fs-4 text-white"></i>
+              <span class="fw-bold">Cetak PDF Resmi (Kop Surat & TTD)</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <!-- Preview Kop Surat -->
+    <div class="content-card mb-4">
+      <div class="card-title-container">
+        <h4>Preview Kop Surat</h4>
+      </div>
+      <div class="border rounded p-3 bg-light" id="kop-surat-preview-cetak">
+        <div class="d-flex align-items-center justify-content-center gap-3 mb-2">
+          <img id="preview-logo-dinas-cetak" src="" alt="Logo Dinas" style="max-height: 60px; display: none;">
+          <div class="text-center">
+            <p class="mb-0 fw-bold" style="font-size: 0.9rem;">PEMERINTAH PROVINSI JAWA TIMUR</p>
+            <p class="mb-0 fw-bold" style="font-size: 0.85rem;">DINAS PENDIDIKAN</p>
+            <p class="mb-0 fw-bold" id="preview-nama-sekolah-cetak" style="font-size: 1rem;">SMP NEGERI 3 BESUKI</p>
+          </div>
+          <img id="preview-logo-sekolah-cetak" src="" alt="Logo Sekolah" style="max-height: 60px; display: none;">
+        </div>
+        <hr class="my-2" style="border-top: 2px solid #000;">
+        <p class="mb-0 text-center small" id="preview-alamat-cetak">Jalan Raya Besuki No. 12, Besuki, Situbondo | Telp: (0338) 123456</p>
+      </div>
+    </div>
+
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Standar Desain & Ketentuan Cetak</h4>
+      </div>
+      <div class="d-flex flex-column gap-3 text-muted small">
+        <div class="d-flex gap-2">
+          <i class="fa-solid fa-circle-info text-primary mt-1"></i>
+          <span><strong>Ukuran Kertas:</strong> Default cetak menggunakan ukuran A4 dengan margin presisi 1.5 cm di seluruh sisi.</span>
+        </div>
+        <div class="d-flex gap-2">
+          <i class="fa-solid fa-circle-info text-success mt-1"></i>
+          <span><strong>Kop Surat Resmi:</strong> Menyertakan logo, nama dinas pendidikan, nama sekolah, alamat lengkap, dan garis tebal penutup kop secara otomatis.</span>
+        </div>
+        <div class="d-flex gap-2">
+          <i class="fa-solid fa-circle-info text-warning mt-1"></i>
+          <span><strong>Tanda Tangan Footer:</strong> Terdapat kolom tanda tangan mengetahui Kepala Sekolah di sebelah kiri dan TTD Guru Pengajar di sebelah kanan.</span>
+        </div>
+        <div class="d-flex gap-2">
+          <i class="fa-solid fa-circle-info text-danger mt-1"></i>
+          <span><strong>Anti-Potong (Page Break):</strong> Layout tabel dioptimalkan agar tidak terpotong di tengah halaman.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function initCetak() {
+    try {
+      const classes = await apiCall('readData', 'Kelas');
+      const mapels = await apiCall('readData', 'Mapel');
+      const settings = await apiCall('getSettings');
+
+      const classSelect = document.getElementById('cetak-kelas');
+      const mapelSelect = document.getElementById('cetak-mapel');
+
+      classSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      classes.forEach(c => {
+        classSelect.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`;
+      });
+
+      mapelSelect.innerHTML = '';
+      mapels.forEach(m => {
+        mapelSelect.innerHTML += `<option value="${m.id}">${m.nama_mapel}</option>`;
+      });
+
+      // Set default date to today
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('cetak-tanggal').value = today;
+
+      // Update kop surat preview from settings
+      updateKopSuratPreviewCetak(settings);
+
+      handleCetakMenuChange();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  function updateKopSuratPreviewCetak(settings) {
+    const namaSekolah = settings.nama_sekolah || 'SMP Negeri 3 Besuki';
+    const alamat = settings.alamat || '';
+    const telepon = settings.telepon || '';
+    const contactInfo = [alamat, telepon].filter(Boolean).join(' | ');
+
+    document.getElementById('preview-nama-sekolah-cetak').textContent = namaSekolah.toUpperCase();
+    document.getElementById('preview-alamat-cetak').textContent = contactInfo || 'Alamat belum diisi';
+
+    if (settings.logo_sekolah) {
+      document.getElementById('preview-logo-sekolah-cetak').src = settings.logo_sekolah;
+      document.getElementById('preview-logo-sekolah-cetak').style.display = 'block';
+    }
+    if (settings.logo_dinas) {
+      document.getElementById('preview-logo-dinas-cetak').src = settings.logo_dinas;
+      document.getElementById('preview-logo-dinas-cetak').style.display = 'block';
+    }
+  }
+
+  function handleCetakMenuChange() {
+    const menu = document.getElementById('cetak-menu').value;
+    const excelBtn = document.getElementById('btn-export-excel');
+    const wordBtn = document.getElementById('btn-export-word');
+    const mapelContainer = document.getElementById('cetak-mapel-container');
+
+    // Show/hide Mapel input based on whether the document is subject-specific (RPE, Prota, Promes)
+    if (menu === 'Rpe' || menu === 'Prota' || menu === 'Promes') {
+      mapelContainer.style.display = 'block';
+    } else {
+      mapelContainer.style.display = 'none';
+    }
+
+    if (menu === 'Siswa') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Jurnal') {
+      excelBtn.disabled = true;
+      wordBtn.disabled = false;
+    } else if (menu === 'Nilai') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Rpe') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Prota') {
+      excelBtn.disabled = false;
+      wordBtn.disabled = true;
+    } else if (menu === 'Promes') {
+      excelBtn.disabled = true;
+      wordBtn.disabled = false;
+    }
+  }
+
+  async function triggerExport(format) {
+    const menu = document.getElementById('cetak-menu').value;
+    const kelasId = document.getElementById('cetak-kelas').value;
+    const mapelId = document.getElementById('cetak-mapel').value;
+    const tanggal = document.getElementById('cetak-tanggal').value;
+
+    if ((menu === 'Rpe' || menu === 'Prota' || menu === 'Promes') && (!kelasId || !mapelId)) {
+      showAlert('warning', 'Ekspor RPE, Prota, dan Promes memerlukan pilihan Kelas dan Mata Pelajaran yang spesifik!');
+      return;
+    }
+
+    showSpinner(`Menyusun dokumen ${menu} dalam format ${format.toUpperCase()}...`);
+
+    try {
+      let result = null;
+      if (format === 'excel') {
+        result = await apiCall('generateExcelExport', menu, kelasId, mapelId);
+      } else if (format === 'word') {
+        result = await apiCall('generateDocxOrPdfExport', menu, kelasId, 'docx', mapelId, tanggal);
+      } else if (format === 'pdf') {
+        result = await apiCall('generateDocxOrPdfExport', menu, kelasId, 'pdf', mapelId, tanggal);
+      }
+
+      if (result && result.base64) {
+        showSpinner("Mengunduh file...");
+        downloadFile(result);
+        showAlert('success', `Dokumen ${result.fileName} berhasil diunduh!`);
+      } else {
+        showAlert('danger', 'Ekspor gagal: Server tidak mengembalikan file.');
+      }
+    } catch (e) {
+      console.error(e);
+      showAlert('danger', 'Gagal mengekspor dokumen: ' + e.message);
+    } finally {
+      hideSpinner();
+    }
+  }
+</script>

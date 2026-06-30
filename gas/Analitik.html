@@ -1,0 +1,346 @@
+<!-- Analitik Page Content -->
+<div class="row g-4">
+  <!-- Bar Chart: Average Grades by Class -->
+  <div class="col-lg-8">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Grafik Rata-rata Nilai per Kelas</h4>
+      </div>
+      <div style="position: relative; height: 350px;">
+        <canvas id="chart-nilai-kelas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie Chart: Attendance rate -->
+  <div class="col-lg-4">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Persentase Presensi Siswa</h4>
+      </div>
+      <div style="position: relative; height: 350px; display: flex; align-items: center; justify-content: center;">
+        <canvas id="chart-presensi-siswa"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistik Nilai Detail -->
+  <div class="col-lg-6">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4><i class="fa-solid fa-chart-line me-2"></i>Analisis Nilai Siswa</h4>
+      </div>
+      <div id="analisis-nilai-container">
+        <div class="text-center py-4">
+          <i class="fa-solid fa-chart-bar fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Memuat analisis nilai...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Distribusi Gender -->
+  <div class="col-lg-6">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4><i class="fa-solid fa-users me-2"></i>Distribusi Gender Siswa</h4>
+      </div>
+      <div style="position: relative; height: 300px;">
+        <canvas id="chart-gender"></canvas>
+      </div>
+      <div id="gender-stats-container" class="mt-3">
+        <!-- Dynamic gender stats -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let chartGrades = null;
+  let chartAttendance = null;
+  let chartGender = null;
+
+  async function initAnalitik() {
+    showSpinner("Memuat visualisasi grafik...");
+
+    try {
+      const data = await apiCall('getAnalitikData');
+
+      // Render charts with empty-safe data
+      renderGradesChart(data.kelasAverages || []);
+      renderAttendanceChart(data.attendanceStats || { Hadir: 0, Sakit: 0, Izin: 0, Alfa: 0 });
+      renderGenderChart(data.genderStats || { 'Laki-laki': 0, 'Perempuan': 0 });
+      renderNilaiAnalysis(data.nilaiAnalysis || { hasData: false });
+    } catch(e) {
+      console.error('Error loading analytics:', e);
+      showAlert('warning', 'Analitik dimuat dengan data terbatas.');
+      renderGradesChart([]);
+      renderAttendanceChart({ Hadir: 0, Sakit: 0, Izin: 0, Alfa: 0 });
+      renderGenderChart({ 'Laki-laki': 0, 'Perempuan': 0 });
+      renderNilaiAnalysis({ hasData: false });
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function renderGradesChart(kelasAverages) {
+    const ctx = document.getElementById('chart-nilai-kelas').getContext('2d');
+
+    if (chartGrades) chartGrades.destroy();
+
+    if (!kelasAverages || kelasAverages.length === 0) {
+      chartGrades = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Tidak Ada Data'],
+          datasets: [{
+            label: 'Rata-rata Nilai',
+            data: [0],
+            backgroundColor: 'rgba(203, 213, 225, 0.75)',
+            borderColor: 'rgb(203, 213, 225)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { min: 0, max: 100, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+      return;
+    }
+
+    const labels = kelasAverages.map(item => item.kelas || 'Kelas');
+    const scores = kelasAverages.map(item => item.rataRata || 0);
+
+    chartGrades = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Rata-rata Nilai',
+          data: scores,
+          backgroundColor: 'rgba(79, 70, 229, 0.75)',
+          borderColor: 'rgb(79, 70, 229)',
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 0, max: 100, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  function renderAttendanceChart(attendanceStats) {
+    const ctx = document.getElementById('chart-presensi-siswa').getContext('2d');
+
+    if (chartAttendance) chartAttendance.destroy();
+
+    const labels = ['Hadir', 'Sakit', 'Izin', 'Alfa'];
+    const dataValues = [
+      attendanceStats.Hadir || 0,
+      attendanceStats.Sakit || 0,
+      attendanceStats.Izin || 0,
+      attendanceStats.Alfa || 0
+    ];
+
+    const total = dataValues.reduce((a, b) => a + b, 0);
+
+    chartAttendance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: total > 0 ? dataValues : [1],
+          backgroundColor: total > 0 ? [
+            '#10b981', '#f59e0b', '#0ea5e9', '#ef4444'
+          ] : ['#cbd5e1'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        cutout: '65%'
+      }
+    });
+  }
+
+  function renderGenderChart(genderStats) {
+    const ctx = document.getElementById('chart-gender').getContext('2d');
+
+    if (chartGender) chartGender.destroy();
+
+    const labels = ['Laki-laki', 'Perempuan'];
+    const dataValues = [genderStats['Laki-laki'] || 0, genderStats['Perempuan'] || 0];
+    const total = dataValues.reduce((a, b) => a + b, 0);
+
+    chartGender = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: total > 0 ? labels : ['Tidak Ada Data'],
+        datasets: [{
+          data: total > 0 ? dataValues : [1],
+          backgroundColor: total > 0 ? [
+            'rgba(59, 130, 246, 0.75)',
+            'rgba(236, 72, 153, 0.75)'
+          ] : ['#cbd5e1'],
+          borderWidth: 2,
+          borderRadius: 8
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#f1f5f9' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Render gender stats
+    const container = document.getElementById('gender-stats-container');
+    const lakiPct = total > 0 ? Math.round((dataValues[0] / total) * 100) : 0;
+    const permpPct = total > 0 ? Math.round((dataValues[1] / total) * 100) : 0;
+
+    container.innerHTML = `
+      <div class="row text-center">
+        <div class="col-6">
+          <div class="border rounded p-3 bg-primary bg-opacity-10">
+            <i class="fa-solid fa-mars fa-2x text-primary mb-2"></i>
+            <h5 class="mb-1">${dataValues[0]} Siswa</h5>
+            <small class="text-muted">Laki-laki (${lakiPct}%)</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="border rounded p-3 bg-danger bg-opacity-10">
+            <i class="fa-solid fa-venus fa-2x text-danger mb-2"></i>
+            <h5 class="mb-1">${dataValues[1]} Siswa</h5>
+            <small class="text-muted">Perempuan (${permpPct}%)</small>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 text-center">
+        <span class="badge bg-secondary">Total: ${total} Siswa</span>
+      </div>
+    `;
+  }
+
+  function renderNilaiAnalysis(data) {
+    const container = document.getElementById('analisis-nilai-container');
+
+    if (!data || !data.hasData) {
+      container.innerHTML = `
+        <div class="text-center py-4">
+          <i class="fa-solid fa-chart-bar fa-3x text-muted mb-3"></i>
+          <p class="text-muted">Belum ada data nilai untuk dianalisis.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const {
+      totalSiswa = 0,
+      nilaiTertinggi = { nilai: '-', nama: '-', mapel: '-' },
+      nilaiTerendah = { nilai: '-', nama: '-', mapel: '-' },
+      siswaLulusKkm = 0,
+      siswaTidakLulus = 0,
+      persentaseLulus = 0,
+      persentaseTidakLulus = 0,
+      distribusiNilai = {}
+    } = data;
+
+    container.innerHTML = `
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <div class="border rounded p-3 text-center bg-success bg-opacity-10">
+            <i class="fa-solid fa-arrow-up fa-lg text-success mb-2"></i>
+            <h6 class="mb-1 text-success">Nilai Tertinggi</h6>
+            <h4 class="mb-0">${nilaiTertinggi.nilai}</h4>
+            <small class="text-muted">${nilaiTertinggi.nama}</small><br>
+            <small class="text-muted">${nilaiTertinggi.mapel}</small>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="border rounded p-3 text-center bg-danger bg-opacity-10">
+            <i class="fa-solid fa-arrow-down fa-lg text-danger mb-2"></i>
+            <h6 class="mb-1 text-danger">Nilai Terendah</h6>
+            <h4 class="mb-0">${nilaiTerendah.nilai}</h4>
+            <small class="text-muted">${nilaiTerendah.nama}</small><br>
+            <small class="text-muted">${nilaiTerendah.mapel}</small>
+          </div>
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3"><i class="fa-solid fa-check-circle me-2 text-success"></i>Analisis Kelulusan KKM</h6>
+      <div class="progress mb-2" style="height: 30px;">
+        <div class="progress-bar bg-success" style="width: ${persentaseLulus}%">
+          <strong>Lulus: ${persentaseLulus}%</strong>
+        </div>
+        <div class="progress-bar bg-danger" style="width: ${persentaseTidakLulus}%">
+          <strong>Remedial: ${persentaseTidakLulus}%</strong>
+        </div>
+      </div>
+      <div class="row text-center mt-2">
+        <div class="col-6">
+          <span class="badge bg-success fs-6"><i class="fa-solid fa-check me-1"></i>${siswaLulusKkm} Siswa Lulus</span>
+        </div>
+        <div class="col-6">
+          <span class="badge bg-danger fs-6"><i class="fa-solid fa-times me-1"></i>${siswaTidakLulus} Siswa Remedial</span>
+        </div>
+      </div>
+
+      <h6 class="fw-bold mb-3 mt-4"><i class="fa-solid fa-chart-simple me-2"></i>Distribusi Nilai</h6>
+      <div class="row text-center">
+        <div class="col-4">
+          <div class="border rounded p-2 bg-danger bg-opacity-10">
+            <h5 class="mb-0 text-danger">${distribusiNilai.sangatKurang || 0}</h5>
+            <small class="text-muted">&lt; 50</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="border rounded p-2 bg-warning bg-opacity-10">
+            <h5 class="mb-0 text-warning">${distribusiNilai.kurang || 0}</h5>
+            <small class="text-muted">50 - 69</small>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="border rounded p-2 bg-info bg-opacity-10">
+            <h5 class="mb-0 text-info">${distribusiNilai.cukup || 0}</h5>
+            <small class="text-muted">70 - 79</small>
+          </div>
+        </div>
+        <div class="col-6 mt-2">
+          <div class="border rounded p-2 bg-success bg-opacity-10">
+            <h5 class="mb-0 text-success">${distribusiNilai.baik || 0}</h5>
+            <small class="text-muted">80 - 89</small>
+          </div>
+        </div>
+        <div class="col-6 mt-2">
+          <div class="border rounded p-2 bg-primary bg-opacity-10">
+            <h5 class="mb-0 text-primary">${distribusiNilai.sangatBaik || 0}</h5>
+            <small class="text-muted">90 - 100</small>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+</script>

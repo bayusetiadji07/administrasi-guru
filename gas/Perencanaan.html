@@ -1,0 +1,1196 @@
+<!-- Perencanaan Page Content -->
+<ul class="nav nav-pills mb-4" id="perencanaanTab" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="kaldik-tab" data-bs-toggle="pill" data-bs-target="#tab-kaldik" type="button" role="tab">
+      <i class="fa-solid fa-calendar me-1"></i> Kalender Pendidikan
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="rpe-tab" data-bs-toggle="pill" data-bs-target="#tab-rpe" type="button" role="tab">
+      <i class="fa-solid fa-hourglass-half me-1"></i> Rincian Pekan Efektif (RPE)
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="prota-promes-tab" data-bs-toggle="pill" data-bs-target="#tab-prota-promes" type="button" role="tab">
+      <i class="fa-solid fa-sliders me-1"></i> Prota & Promes Matrix
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content" id="perencanaanTabContent">
+  <!-- KALDIK TAB -->
+  <div class="tab-pane fade show active" id="tab-kaldik" role="tabpanel">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Kalender Akademik Sekolah</h4>
+        <button class="btn btn-premium btn-sm" onclick="openKaldikModal()">
+          <i class="fa-solid fa-plus me-1"></i> Tambah Agenda Kaldik
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-custom align-middle">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Keterangan Kegiatan</th>
+              <th>Kategori</th>
+              <th style="width: 100px;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="kaldik-table-body">
+            <tr>
+              <td colspan="4" class="text-center">Memuat kalender...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RPE TAB -->
+  <div class="tab-pane fade" id="tab-rpe" role="tabpanel">
+    <div class="row g-4">
+      <!-- Filter Sidebar -->
+      <div class="col-md-3">
+        <div class="content-card">
+          <h5 class="fw-bold mb-3">Filter RPE</h5>
+          <div class="mb-3">
+            <label for="rpe-kelas" class="form-label">Kelas</label>
+            <select class="form-select" id="rpe-kelas" onchange="loadRpeCalculator()">
+              <option value="">Pilih Kelas</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="rpe-mapel" class="form-label">Mata Pelajaran</label>
+            <select class="form-select" id="rpe-mapel" onchange="loadRpeCalculator()">
+              <option value="">Pilih Mapel</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="rpe-semester" class="form-label">Semester</label>
+            <select class="form-select" id="rpe-semester" onchange="loadRpeCalculator()">
+              <option value="Ganjil">Ganjil</option>
+              <option value="Genap">Genap</option>
+            </select>
+          </div>
+          <hr>
+          <div class="d-grid">
+            <button class="btn btn-premium" id="btn-save-rpe" onclick="saveRpeData()" disabled>
+              <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Perhitungan RPE
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculator Form -->
+      <div class="col-md-9">
+        <div class="content-card" id="rpe-form-card" style="display:none;">
+          <div class="card-title-container">
+            <h4 class="mb-0">Kalkulator Rincian Pekan Efektif (RPE)</h4>
+            <span class="badge bg-secondary font-monospace" id="rpe-jp-info">JP Mingguan: -</span>
+          </div>
+
+          <!-- Section A -->
+          <div class="border rounded p-3 mb-4 bg-light">
+            <h5 class="fw-bold text-primary mb-3">A. PERHITUNGAN PEKAN EFEKTIF SEKOLAH</h5>
+            
+            <!-- I. Jumlah Pekan -->
+            <div class="mb-4">
+              <h6 class="fw-semibold">I. Jumlah Pekan Dalam Satu Semester:</h6>
+              <div class="table-responsive">
+                <table class="table table-bordered bg-white text-center align-middle" style="font-size:0.9rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:60px;">No</th>
+                      <th>Bulan</th>
+                      <th style="width:150px;">Jumlah Pekan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpe-table-weeks-body">
+                    <!-- Loaded via JS -->
+                  </tbody>
+                  <tfoot>
+                    <tr class="table-secondary fw-bold">
+                      <td colspan="2" class="text-end">Jumlah Pekan ( A )</td>
+                      <td id="rpe-total-a">0</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- II. Jumlah Pekan Tidak Efektif -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-semibold mb-0">II. Jumlah Pekan Tidak Efektif:</h6>
+                <button class="btn btn-xs btn-outline-primary" onclick="addRpeHolidayRow()">
+                  <i class="fa-solid fa-plus me-1"></i> Tambah Kegiatan
+                </button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-bordered bg-white text-center align-middle" style="font-size:0.9rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:60px;">No</th>
+                      <th style="width:150px;">Bulan</th>
+                      <th>Kegiatan Tidak Efektif</th>
+                      <th style="width:120px;">Jumlah Pekan</th>
+                      <th style="width:60px;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpe-table-holidays-body">
+                    <!-- Added via JS -->
+                  </tbody>
+                  <tfoot>
+                    <tr class="table-secondary fw-bold">
+                      <td colspan="3" class="text-end">Jumlah Pekan Tidak Efektif ( B )</td>
+                      <td id="rpe-total-b">0</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- III. Jumlah Pekan Efektif -->
+            <div>
+              <h6 class="fw-semibold">III. Jumlah Pekan Efektif dalam Satu Semester ( C = A - B ):</h6>
+              <div class="alert alert-success d-flex align-items-center justify-content-between mb-0 py-2">
+                <span class="fw-bold">Pekan Efektif Mengajar ( C ):</span>
+                <span class="fs-5 fw-bold font-monospace" id="rpe-val-c">0 Pekan</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section B -->
+          <div class="border rounded p-3 bg-light">
+            <h5 class="fw-bold text-primary mb-3">B. PERHITUNGAN JAM EFEKTIF</h5>
+
+            <!-- I. Rincian Penggunaan Pekan Efektif -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-semibold mb-0">I. Rincian Penggunaan Pekan Efektif:</h6>
+                <button class="btn btn-xs btn-outline-primary" onclick="addRpeUsageRow()">
+                  <i class="fa-solid fa-plus me-1"></i> Tambah Rincian
+                </button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-bordered bg-white text-center align-middle" style="font-size:0.9rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:60px;">No</th>
+                      <th>Rincian Penggunaan</th>
+                      <th style="width:150px;">Alokasi Pekan</th>
+                      <th style="width:60px;">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rpe-table-usage-body">
+                    <!-- Added via JS -->
+                  </tbody>
+                  <tfoot>
+                    <tr class="table-secondary fw-bold">
+                      <td colspan="2" class="text-end">Jumlah Rincian ( D )</td>
+                      <td id="rpe-total-d">0</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div id="rpe-validation-warning" class="alert alert-danger mt-2 py-2 d-none" role="alert">
+                <i class="fa-solid fa-circle-exclamation me-2"></i> Jumlah Rincian (D) harus sama dengan Pekan Efektif (C)!
+              </div>
+            </div>
+
+            <!-- Jam Pelajaran Kalkulasi -->
+            <div>
+              <h6 class="fw-semibold">Kalkulasi Jam Pelajaran (JP) Semester:</h6>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="p-3 border rounded bg-white text-center">
+                    <span class="text-muted small d-block mb-1">Jumlah Jam Efektif (C x JP/Minggu)</span>
+                    <h4 class="mb-0 fw-bold text-success font-monospace" id="rpe-total-jp-efektif">0 JP</h4>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="p-3 border rounded bg-white text-center">
+                    <span class="text-muted small d-block mb-1">Jumlah Jam PBM (PBM Pekan x JP/Minggu)</span>
+                    <h4 class="mb-0 fw-bold text-primary font-monospace" id="rpe-total-jp-pbm">0 JP</h4>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROTA & PROMES TAB -->
+  <div class="tab-pane fade" id="tab-prota-promes" role="tabpanel">
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="content-card">
+          <h5 class="fw-bold mb-3">Filter Pembelajaran</h5>
+          <div class="mb-3">
+            <label for="pp-kelas" class="form-label">Kelas</label>
+            <select class="form-select" id="pp-kelas" onchange="loadProtaPromes()">
+              <option value="">Pilih Kelas</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="pp-mapel" class="form-label">Mata Pelajaran</label>
+            <select class="form-select" id="pp-mapel" onchange="loadProtaPromes()">
+              <option value="">Pilih Mapel</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="pp-semester" class="form-label">Semester</label>
+            <select class="form-select" id="pp-semester" onchange="loadProtaPromes()">
+              <option value="Ganjil">Ganjil</option>
+              <option value="Genap">Genap</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-9">
+        <!-- PROTA SECTION -->
+        <div class="content-card mb-4" id="prota-card" style="display:none;">
+          <div class="card-title-container">
+            <h4>Program Tahunan (Prota)</h4>
+            <button class="btn btn-premium btn-sm" onclick="openProtaModal()">
+              <i class="fa-solid fa-plus me-1"></i> Tambah TP
+            </button>
+          </div>
+
+          <!-- Prota Table -->
+          <div class="table-responsive">
+            <table class="table table-bordered align-middle text-center bg-white" style="font-size: 0.85rem;">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 80px;">Semester</th>
+                  <th>Tujuan Pembelajaran (TP)</th>
+                  <th style="width: 100px;">Alokasi JP</th>
+                  <th style="width: 80px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="prota-table-body">
+                <!-- Loaded via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- PROMES SECTION -->
+        <div class="content-card" id="promes-card" style="display:none;">
+          <div class="card-title-container">
+            <h4>Matriks Program Semester (Promes)</h4>
+            <button class="btn btn-success btn-sm" onclick="savePromesMatrix()">
+              <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Matriks Promes
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered promes-matrix-table align-middle text-center bg-white" style="font-size: 0.82rem;">
+              <thead class="table-light" id="promes-matrix-header">
+                <!-- Generated via JS -->
+              </thead>
+              <tbody id="promes-matrix-body">
+                <!-- Generated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kaldik -->
+<div class="modal fade" id="kaldikModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Form Kalender Pendidikan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="kaldik-form">
+          <div class="mb-3">
+            <label for="kaldik-tanggal" class="form-label">Tanggal <span class="text-danger">*</span></label>
+            <input type="date" class="form-control" id="kaldik-tanggal" required>
+          </div>
+          <div class="mb-3">
+            <label for="kaldik-keterangan" class="form-label">Keterangan <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="kaldik-keterangan" required placeholder="Contoh: Libur Hari Raya">
+          </div>
+          <div class="mb-3">
+            <label for="kaldik-kategori" class="form-label">Kategori <span class="text-danger">*</span></label>
+            <select class="form-select" id="kaldik-kategori" required>
+              <option value="Libur">Libur Sekolah</option>
+              <option value="Ujian">Penilaian / Ujian</option>
+              <option value="Efektif">Kegiatan Efektif KBM</option>
+            </select>
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveKaldik()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Prota -->
+<div class="modal fade" id="protaModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Tujuan Pembelajaran (TP)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="prota-form">
+          <div class="mb-3">
+            <label for="prota-kd" class="form-label">Tujuan Pembelajaran (TP) <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="prota-kd" required placeholder="Contoh: 3.1 Menjelaskan konsep sel">
+          </div>
+          <div class="mb-3">
+            <label for="prota-jp" class="form-label">Alokasi JP <span class="text-danger">*</span></label>
+            <input type="number" class="form-control" id="prota-jp" required placeholder="Contoh: 8" min="1">
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveProta()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let kaldikModalObj = null;
+  let protaModalObj = null;
+  let protaListCache = [];
+  let promesListCache = [];
+  let currentMapelJp = 5;
+
+  // State structures for Rpe
+  let rpeMonthWeeks = {};
+  let rpeHolidays = [];
+  let rpeUsages = [];
+
+  async function initPerencanaan() {
+    kaldikModalObj = new bootstrap.Modal(document.getElementById('kaldikModal'));
+    protaModalObj = new bootstrap.Modal(document.getElementById('protaModal'));
+    
+    try {
+      const classes = await apiCall('readData', 'Kelas');
+      const mapels = await apiCall('readData', 'Mapel');
+
+      // Populate filters
+      const classSelects = [document.getElementById('rpe-kelas'), document.getElementById('pp-kelas')];
+      const mapelSelects = [document.getElementById('rpe-mapel'), document.getElementById('pp-mapel')];
+
+      classSelects.forEach(sel => {
+        sel.innerHTML = '<option value="">Pilih Kelas</option>';
+        classes.forEach(c => { sel.innerHTML += `<option value="${c.id}">${c.nama_kelas}</option>`; });
+      });
+
+      mapelSelects.forEach(sel => {
+        sel.innerHTML = '<option value="">Pilih Mapel</option>';
+        mapels.forEach(m => { sel.innerHTML += `<option value="${m.id}" data-jp="${m.jp_mingguan}">${m.nama_mapel}</option>`; });
+      });
+    } catch(e) {
+      console.error(e);
+    }
+
+    await loadKaldikTable();
+  }
+
+  // --- KALDIK LOGIC ---
+  async function loadKaldikTable() {
+    const tbody = document.getElementById('kaldik-table-body');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center">Memuat kalender akademik...</td></tr>';
+    
+    try {
+      const data = await apiCall('readData', 'Kaldik');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada agenda akademik terdaftar.</td></tr>';
+        return;
+      }
+      
+      data.sort((a,b) => new Date(a.tanggal) - new Date(b.tanggal));
+
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        let catBadge = 'bg-success';
+        if (item.kategori === 'Libur') catBadge = 'bg-danger';
+        else if (item.kategori === 'Ujian') catBadge = 'bg-warning text-dark';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${item.tanggal}</strong></td>
+          <td>${item.keterangan}</td>
+          <td><span class="badge ${catBadge}">${item.kategori}</span></td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteKaldik('${item.tanggal}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Gagal memuat kalender.</td></tr>';
+    }
+  }
+
+  function openKaldikModal() {
+    document.getElementById('kaldik-form').reset();
+    kaldikModalObj.show();
+  }
+
+  async function saveKaldik() {
+    const tanggal = document.getElementById('kaldik-tanggal').value;
+    const keterangan = document.getElementById('kaldik-keterangan').value.trim();
+    const kategori = document.getElementById('kaldik-kategori').value;
+
+    if (!tanggal || !keterangan || !kategori) {
+      showAlert('warning', 'Kolom wajib diisi!');
+      return;
+    }
+
+    try {
+      await apiCall('createData', 'Kaldik', { tanggal, keterangan, kategori });
+      showAlert('success', 'Agenda Kaldik berhasil ditambahkan!');
+      kaldikModalObj.hide();
+      await loadKaldikTable();
+      if (document.getElementById('rpe-form-card').style.display !== 'none') {
+        loadRpeCalculator();
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteKaldik(tanggal) {
+    if (!confirm('Apakah Anda yakin ingin menghapus agenda tanggal ' + tanggal + '?')) return;
+    try {
+      await apiCall('deleteData', 'Kaldik', tanggal);
+      showAlert('success', 'Agenda berhasil dihapus!');
+      await loadKaldikTable();
+      if (document.getElementById('rpe-form-card').style.display !== 'none') {
+        loadRpeCalculator();
+      }
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  // --- RPE CALCULATOR REDESIGN ---
+  async function loadRpeCalculator() {
+    const kelasId = document.getElementById('rpe-kelas').value;
+    const mapelId = document.getElementById('rpe-mapel').value;
+    const semester = document.getElementById('rpe-semester').value;
+    const formCard = document.getElementById('rpe-form-card');
+
+    if (!kelasId || !mapelId) {
+      formCard.style.display = 'none';
+      document.getElementById('btn-save-rpe').disabled = true;
+      return;
+    }
+
+    // Set mapel JP info
+    const mapelOpt = document.querySelector(`#rpe-mapel option[value="${mapelId}"]`);
+    currentMapelJp = Number(mapelOpt.getAttribute('data-jp')) || 5;
+    document.getElementById('rpe-jp-info').innerText = `JP Mingguan: ${currentMapelJp} JP`;
+
+    showSpinner("Memuat kalkulator RPE...");
+    try {
+      // 1. Check if RPE is already saved in DB
+      const rpeData = await apiCall('readRpe', mapelId, kelasId, semester);
+      
+      const listMonths = semester === 'Ganjil' ? 
+        ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] : 
+        ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+
+      if (rpeData && rpeData.data_json) {
+        const parsed = JSON.parse(rpeData.data_json);
+        rpeMonthWeeks = parsed.pekanBulanan || {};
+        rpeHolidays = parsed.kegiatanLibur || [];
+        rpeUsages = parsed.rincianPenggunaan || [];
+      } else {
+        // Defaults
+        rpeMonthWeeks = {};
+        listMonths.forEach(m => {
+          // Default weeks (e.g. Juli:5, Ags:4, etc.)
+          if (m === 'Juli' || m === 'Oktober' || m === 'Desember' || m === 'April') {
+            rpeMonthWeeks[m] = 5;
+          } else {
+            rpeMonthWeeks[m] = 4;
+          }
+        });
+        
+        // Default holiday categories
+        rpeHolidays = [
+          { bulan: listMonths[0], kegiatan: 'Libur semester genap TA sebelumnya', pekan: 2 },
+          { bulan: listMonths[5], kegiatan: 'Libur semester ganjil TA berjalan', pekan: 2 }
+        ];
+
+        // Default usage categories
+        rpeUsages = [
+          { rincian: 'PBM (Proses Belajar Mengajar)', pekan: 0 },
+          { rincian: 'Kegiatan Agustusan/Sekolah/LPP', pekan: 1 },
+          { rincian: 'Sumatif Semester + susulan', pekan: 2 },
+          { rincian: 'Pengolahan dan entry nilai rapor', pekan: 1 }
+        ];
+      }
+
+      renderRpeTables(listMonths);
+      formCard.style.display = 'block';
+      document.getElementById('btn-save-rpe').disabled = false;
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal memuat kalkulator RPE.');
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function renderRpeTables(listMonths) {
+    // I. Table Weeks
+    const twBody = document.getElementById('rpe-table-weeks-body');
+    twBody.innerHTML = '';
+    listMonths.forEach((m, idx) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${idx + 1}</td>
+        <td class="text-start fw-bold">${m}</td>
+        <td>
+          <input type="number" class="form-control text-center mx-auto rpe-input-week" 
+                 style="width:80px;" data-month="${m}" 
+                 value="${rpeMonthWeeks[m] || 4}" min="1" max="6" 
+                 oninput="calculateRpeTotals()">
+        </td>
+      `;
+      twBody.appendChild(row);
+    });
+
+    // II. Table Holidays
+    renderRpeHolidays(listMonths);
+
+    // B.I Table Usage
+    renderRpeUsages();
+
+    calculateRpeTotals();
+  }
+
+  function renderRpeHolidays(listMonths) {
+    const thBody = document.getElementById('rpe-table-holidays-body');
+    thBody.innerHTML = '';
+    
+    rpeHolidays.forEach((item, idx) => {
+      // Month dropdown builder
+      let optionsHtml = '';
+      listMonths.forEach(m => {
+        optionsHtml += `<option value="${m}" ${item.bulan === m ? 'selected' : ''}>${m}</option>`;
+      });
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>
+          <select class="form-select form-select-sm rpe-holiday-month" onchange="updateHolidayState(${idx})">
+            ${optionsHtml}
+          </select>
+        </td>
+        <td>
+          <input type="text" class="form-control form-control-sm rpe-holiday-desc" 
+                 value="${item.kegiatan}" oninput="updateHolidayState(${idx})" placeholder="Nama kegiatan libur">
+        </td>
+        <td>
+          <input type="number" class="form-control form-control-sm text-center rpe-holiday-week" 
+                 value="${item.pekan}" min="0" max="6" oninput="updateHolidayState(${idx}); calculateRpeTotals();" style="width:80px; margin:0 auto;">
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRpeHolidayRow(${idx})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      `;
+      thBody.appendChild(row);
+    });
+  }
+
+  function renderRpeUsages() {
+    const tuBody = document.getElementById('rpe-table-usage-body');
+    tuBody.innerHTML = '';
+    
+    rpeUsages.forEach((item, idx) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>
+          <input type="text" class="form-control form-control-sm rpe-usage-desc text-start" 
+                 value="${item.rincian}" oninput="updateUsageState(${idx})" placeholder="Rincian penggunaan pekan">
+        </td>
+        <td>
+          <input type="number" class="form-control form-control-sm text-center rpe-usage-week" 
+                 value="${item.pekan}" min="0" max="30" oninput="updateUsageState(${idx}); calculateRpeTotals();" style="width:100px; margin:0 auto;">
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteRpeUsageRow(${idx})">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      `;
+      tuBody.appendChild(row);
+    });
+  }
+
+  function addRpeHolidayRow() {
+    const semester = document.getElementById('rpe-semester').value;
+    const listMonths = semester === 'Ganjil' ? 
+      ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] : 
+      ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+    
+    rpeHolidays.push({ bulan: listMonths[0], kegiatan: 'Kegiatan Libur Baru', pekan: 1 });
+    renderRpeHolidays(listMonths);
+    calculateRpeTotals();
+  }
+
+  function deleteRpeHolidayRow(idx) {
+    const semester = document.getElementById('rpe-semester').value;
+    const listMonths = semester === 'Ganjil' ? 
+      ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] : 
+      ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+    
+    rpeHolidays.splice(idx, 1);
+    renderRpeHolidays(listMonths);
+    calculateRpeTotals();
+  }
+
+  function updateHolidayState(idx) {
+    const row = document.querySelectorAll('#rpe-table-holidays-body tr')[idx];
+    if (!row) return;
+    rpeHolidays[idx].bulan = row.querySelector('.rpe-holiday-month').value;
+    rpeHolidays[idx].kegiatan = row.querySelector('.rpe-holiday-desc').value;
+    rpeHolidays[idx].pekan = Number(row.querySelector('.rpe-holiday-week').value) || 0;
+  }
+
+  function addRpeUsageRow() {
+    rpeUsages.push({ rincian: 'Rincian Kegiatan Baru', pekan: 1 });
+    renderRpeUsages();
+    calculateRpeTotals();
+  }
+
+  function deleteRpeUsageRow(idx) {
+    rpeUsages.splice(idx, 1);
+    renderRpeUsages();
+    calculateRpeTotals();
+  }
+
+  function updateUsageState(idx) {
+    const row = document.querySelectorAll('#rpe-table-usage-body tr')[idx];
+    if (!row) return;
+    rpeUsages[idx].rincian = row.querySelector('.rpe-usage-desc').value;
+    rpeUsages[idx].pekan = Number(row.querySelector('.rpe-usage-week').value) || 0;
+  }
+
+  function calculateRpeTotals() {
+    // 1. Sum calendar weeks (A)
+    let sumA = 0;
+    document.querySelectorAll('.rpe-input-week').forEach(input => {
+      const m = input.getAttribute('data-month');
+      const val = Number(input.value) || 0;
+      rpeMonthWeeks[m] = val;
+      sumA += val;
+    });
+    document.getElementById('rpe-total-a').innerText = sumA;
+
+    // 2. Sum holidays (B)
+    let sumB = 0;
+    rpeHolidays.forEach((item, idx) => {
+      const row = document.querySelectorAll('#rpe-table-holidays-body tr')[idx];
+      if (row) {
+        const val = Number(row.querySelector('.rpe-holiday-week').value) || 0;
+        rpeHolidays[idx].pekan = val;
+        sumB += val;
+      }
+    });
+    document.getElementById('rpe-total-b').innerText = sumB;
+
+    // 3. Pekan Efektif (C = A - B)
+    const valC = Math.max(0, sumA - sumB);
+    document.getElementById('rpe-val-c').innerText = `${valC} Pekan`;
+
+    // 4. Sum rincian penggunaan (D)
+    let sumD = 0;
+    let pbmWeeks = 0;
+    rpeUsages.forEach((item, idx) => {
+      const row = document.querySelectorAll('#rpe-table-usage-body tr')[idx];
+      if (row) {
+        const val = Number(row.querySelector('.rpe-usage-week').value) || 0;
+        rpeUsages[idx].pekan = val;
+        sumD += val;
+
+        if (item.rincian.toUpperCase().includes('PBM') || item.rincian.toUpperCase().includes('BELAJAR')) {
+          pbmWeeks = val;
+        }
+      }
+    });
+    document.getElementById('rpe-total-d').innerText = sumD;
+
+    // Set first row PBM if empty or adjust automatically if pbmWeeks not found
+    if (pbmWeeks === 0 && rpeUsages.length > 0) {
+      // estimate PBM is C minus other usage items
+      let otherSum = 0;
+      rpeUsages.forEach((item, idx) => {
+        if (idx > 0) otherSum += item.pekan;
+      });
+      pbmWeeks = Math.max(0, valC - otherSum);
+      rpeUsages[0].pekan = pbmWeeks;
+      const firstRowInput = document.querySelector('#rpe-table-usage-body tr .rpe-usage-week');
+      if (firstRowInput) firstRowInput.value = pbmWeeks;
+      sumD = otherSum + pbmWeeks;
+      document.getElementById('rpe-total-d').innerText = sumD;
+    }
+
+    // 5. Validation Alert
+    const valWarning = document.getElementById('rpe-validation-warning');
+    const saveBtn = document.getElementById('btn-save-rpe');
+    if (sumD !== valC) {
+      valWarning.classList.remove('d-none');
+      valWarning.innerText = `Jumlah Rincian (D) = ${sumD} pekan, harus sama dengan Pekan Efektif (C) = ${valC} pekan!`;
+      saveBtn.disabled = true;
+    } else {
+      valWarning.classList.add('d-none');
+      saveBtn.disabled = false;
+    }
+
+    // 6. JP Calculations
+    const jpEfektif = valC * currentMapelJp;
+    const jpPbm = pbmWeeks * currentMapelJp;
+
+    document.getElementById('rpe-total-jp-efektif').innerText = `${jpEfektif} JP`;
+    document.getElementById('rpe-total-jp-pbm').innerText = `${jpPbm} JP`;
+  }
+
+  async function saveRpeData() {
+    const kelasId = document.getElementById('rpe-kelas').value;
+    const mapelId = document.getElementById('rpe-mapel').value;
+    const semester = document.getElementById('rpe-semester').value;
+
+    const payload = {
+      pekanBulanan: rpeMonthWeeks,
+      kegiatanLibur: rpeHolidays,
+      rincianPenggunaan: rpeUsages
+    };
+
+    try {
+      await apiCall('saveRpeBatch', mapelId, kelasId, semester, JSON.stringify(payload));
+      showAlert('success', 'Perhitungan Rencana Pekan Efektif (RPE) berhasil disimpan!');
+      await loadRpeCalculator();
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal menyimpan RPE: ' + e.message);
+    }
+  }
+
+  // --- PROTA & PROMES MATRIX REDESIGN ---
+  async function loadProtaPromes() {
+    const kelasId = document.getElementById('pp-kelas').value;
+    const mapelId = document.getElementById('pp-mapel').value;
+    const semester = document.getElementById('pp-semester').value;
+
+    const protaCard = document.getElementById('prota-card');
+    const promesCard = document.getElementById('promes-card');
+
+    if (!kelasId || !mapelId) {
+      protaCard.style.display = 'none';
+      promesCard.style.display = 'none';
+      return;
+    }
+
+    showSpinner("Memuat data kurikulum...");
+
+    try {
+      // Get teacher settings for signatures
+      const settings = await apiCall('getSettings');
+
+      // Load Prota & Promes
+      const allProta = await apiCall('readData', 'Prota');
+      protaListCache = allProta.filter(p => p.kelas_id === kelasId && p.mapel_id === mapelId);
+
+      const allPromes = await apiCall('readData', 'Promes');
+      promesListCache = allPromes;
+
+      // Load Jurnals for Realization
+      const allJurnals = await apiCall('readData', 'Jurnal');
+
+      // Render Prota with new format
+      renderProtaTable(protaListCache);
+
+      protaCard.style.display = 'block';
+
+      // Load RPE config for Promes columns matching
+      const rpeData = await apiCall('readRpe', mapelId, kelasId, semester);
+      let weeksConfig = {};
+      const months = semester === 'Ganjil' ?
+        ['Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'] :
+        ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
+
+      if (rpeData && rpeData.data_json) {
+        const parsed = JSON.parse(rpeData.data_json);
+        weeksConfig = parsed.pekanBulanan || {};
+      } else {
+        // default 4 weeks for each if not set
+        months.forEach(m => { weeksConfig[m] = 4; });
+      }
+
+      // Render Promes Matrix with custom week columns and Pencapaian
+      renderPromesMatrix(semester, months, weeksConfig, allJurnals, kelasId, mapelId);
+
+      promesCard.style.display = 'block';
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal memuat Rencana Akademik.');
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function renderProtaTable(protaData) {
+    const tbody = document.getElementById('prota-table-body');
+    tbody.innerHTML = '';
+
+    // Separate prota by semester
+    const ganjilProta = protaData.filter(p => p.semester === 'Ganjil');
+    const genapProta = protaData.filter(p => p.semester === 'Genap');
+
+    // Calculate totals
+    let totalGanjil = 0;
+    let totalGenap = 0;
+
+    // Ganjil Semester Section
+    let html = `<tr class="table-primary"><td colspan="4" class="fw-bold text-start"><i class="fa-solid fa-calendar-alt me-2"></i>SEMESTER GANJIL</td></tr>`;
+
+    // Ganjil TPs
+    if (ganjilProta.length === 0) {
+      html += `<tr><td>-</td><td class="text-muted text-start">Belum ada Tujuan Pembelajaran</td><td>-</td><td>-</td></tr>`;
+    } else {
+      ganjilProta.forEach(p => {
+        totalGanjil += p.alokasi_jp;
+        html += `<tr>
+          <td>-</td>
+          <td class="text-start">${p.tujuan_pembelajaran}</td>
+          <td class="font-monospace">${p.alokasi_jp} JP</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteProta('${p.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      });
+    }
+
+    // Ganjil Total
+    html += `<tr class="table-dark fw-bold">
+      <td>-</td>
+      <td class="text-end">JUMLAH ALOKASI JP SEMESTER GANJIL</td>
+      <td class="font-monospace">${totalGanjil} JP</td>
+      <td></td>
+    </tr>`;
+
+    // Empty row separator
+    html += `<tr><td colspan="4" class="border-0 bg-white p-3"></td></tr>`;
+
+    // Genap Semester Section
+    html += `<tr class="table-success"><td colspan="4" class="fw-bold text-start"><i class="fa-solid fa-calendar-alt me-2"></i>SEMESTER GENAP</td></tr>`;
+
+    // Genap TPs
+    if (genapProta.length === 0) {
+      html += `<tr><td>-</td><td class="text-muted text-start">Belum ada Tujuan Pembelajaran</td><td>-</td><td>-</td></tr>`;
+    } else {
+      genapProta.forEach(p => {
+        totalGenap += p.alokasi_jp;
+        html += `<tr>
+          <td>-</td>
+          <td class="text-start">${p.tujuan_pembelajaran}</td>
+          <td class="font-monospace">${p.alokasi_jp} JP</td>
+          <td>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteProta('${p.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        </tr>`;
+      });
+    }
+
+    // Genap Total
+    html += `<tr class="table-dark fw-bold">
+      <td>-</td>
+      <td class="text-end">JUMLAH ALOKASI JP SEMESTER GENAP</td>
+      <td class="font-monospace">${totalGenap} JP</td>
+      <td></td>
+    </tr>`;
+
+    // Grand Total
+    html += `<tr class="table-warning fw-bold">
+      <td colspan="2" class="text-end">TOTAL ALOKASI JP SELURUHNYA</td>
+      <td class="font-monospace">${totalGanjil + totalGenap} JP</td>
+      <td></td>
+    </tr>`;
+
+    tbody.innerHTML = html;
+  }
+
+  function renderPromesMatrix(semester, months, weeksConfig, allJurnals, kelasId, mapelId) {
+    const header = document.getElementById('promes-matrix-header');
+    const body = document.getElementById('promes-matrix-body');
+
+    // Build headers based on weeksConfig
+    let headHtml1 = `<tr><th rowspan="2" class="align-middle text-start" style="min-width:180px;">Tujuan Pembelajaran</th><th rowspan="2" class="align-middle" style="width:80px;">Alokasi</th>`;
+    let headHtml2 = `<tr>`;
+
+    const shortMonths = months.map(m => m.substring(0,3)); // Jul, Agu, etc.
+
+    months.forEach((m, idx) => {
+      const shortM = shortMonths[idx];
+      const totalWeeks = weeksConfig[m] || 4;
+      headHtml1 += `<th colspan="${totalWeeks}">${m}</th>`;
+      for (let w = 1; w <= totalWeeks; w++) {
+        headHtml2 += `<th style="width:30px; font-size:0.7rem; padding:0.25rem;">W${w}</th>`;
+      }
+    });
+
+    headHtml1 += `<th colspan="2" class="align-middle">Pencapaian</th></tr>`;
+    headHtml2 += `<th style="width:65px; font-size:0.75rem;">Rencana</th><th style="width:65px; font-size:0.75rem;">Real</th></tr>`;
+    header.innerHTML = headHtml1 + headHtml2;
+
+    if (protaListCache.length === 0) {
+      const totalCols = 2 + shortMonths.reduce((sum, sm, idx) => sum + (weeksConfig[months[idx]] || 4), 0) + 2;
+      body.innerHTML = `<tr><td colspan="${totalCols}" class="text-center text-muted py-4">Tujuan Pembelajaran belum diisi di Prota.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = '';
+    
+    // Track totals
+    let totalJpAlokasi = 0;
+    let totalJpRencana = 0;
+    let totalJpReal = 0;
+    
+    // Map columns for calculations
+    const colList = [];
+    months.forEach((m, idx) => {
+      const shortM = shortMonths[idx];
+      const totalWeeks = weeksConfig[m] || 4;
+      for (let w = 1; w <= totalWeeks; w++) {
+        colList.push(`${shortM}-W${w}`);
+      }
+    });
+
+    protaListCache.forEach((p, pIdx) => {
+      totalJpAlokasi += p.alokasi_jp;
+      
+      let rowHtml = `<tr>
+        <td class="text-start"><strong>${p.tujuan_pembelajaran}</strong></td>
+        <td class="font-monospace">${p.alokasi_jp} JP</td>`;
+
+      let sumPlanned = 0;
+      colList.forEach(colKey => {
+        const allocation = promesListCache.find(pr => pr.prota_id === p.id && pr.bulan_minggu === colKey);
+        const val = allocation ? allocation.jp_alokasi : '';
+        sumPlanned += allocation ? allocation.jp_alokasi : 0;
+        
+        rowHtml += `<td>
+          <input type="number" 
+                 class="promes-input-cell text-center p-0"
+                 style="width:100%; border:none; background:transparent; font-size:0.8rem;"
+                 data-prota-id="${p.id}" 
+                 data-col="${colKey}" 
+                 data-row-idx="${pIdx}"
+                 value="${val}" 
+                 min="1" 
+                 max="10"
+                 oninput="calculatePromesRowTotals(${pIdx}, ${p.alokasi_jp})">
+        </td>`;
+      });
+
+      totalJpRencana += sumPlanned;
+
+      // Realization calculation from Jurnals (if journal class matches, mapel matches, and materi contains key phrase of TP)
+      let sumReal = 0;
+      const classJurnals = allJurnals.filter(j => j.kelas_id === kelasId && j.mapel_id === mapelId);
+      classJurnals.forEach(j => {
+        if (j.materi && p.tujuan_pembelajaran && 
+            (j.materi.toLowerCase().includes(p.tujuan_pembelajaran.toLowerCase()) || 
+             p.tujuan_pembelajaran.toLowerCase().includes(j.materi.toLowerCase()))) {
+          sumReal += 2; // Estimate 2 JP per journal session
+        }
+      });
+      sumReal = Math.min(sumReal, p.alokasi_jp); // Cap at alokasi_jp
+      totalJpReal += sumReal;
+
+      rowHtml += `
+        <td class="bg-light fw-bold text-primary font-monospace cell-plansum-${pIdx}">${sumPlanned}</td>
+        <td class="bg-light fw-bold text-success font-monospace cell-realsum-${pIdx}">${sumReal}</td>
+      </tr>`;
+      
+      body.innerHTML += rowHtml;
+    });
+
+    // Summary Rows
+    // Total columns count
+    const weekColsCount = colList.length;
+    let sumRowHtml = `
+      <tr class="table-secondary fw-bold">
+        <td class="text-start">JUMLAH ALOKASI WAKTU SELURUHNYA</td>
+        <td class="font-monospace">${totalJpAlokasi} JP</td>
+    `;
+    
+    // Empty cells for weeks columns
+    for (let c = 0; c < weekColsCount; c++) {
+      sumRowHtml += `<td></td>`;
+    }
+    
+    sumRowHtml += `
+        <td class="font-monospace text-primary" id="promes-total-plan">${totalJpRencana}</td>
+        <td class="font-monospace text-success" id="promes-total-real">${totalJpReal}</td>
+      </tr>
+    `;
+
+    // Achievement percentage row
+    let targetRowHtml = `
+      <tr class="table-info fw-bold">
+        <td class="text-start">PENCAPAIAN TARGET KURIKULUM</td>
+        <td></td>
+    `;
+    for (let c = 0; c < weekColsCount; c++) {
+      targetRowHtml += `<td></td>`;
+    }
+    
+    const pctAchieved = totalJpRencana > 0 ? Math.round((totalJpReal / totalJpRencana) * 100) : 0;
+    targetRowHtml += `
+        <td colspan="2" class="font-monospace text-dark text-center" id="promes-pct-achieved">${pctAchieved}% Target</td>
+      </tr>
+    `;
+
+    body.innerHTML += sumRowHtml + targetRowHtml;
+  }
+
+  function calculatePromesRowTotals(pIdx, maxAlokasi) {
+    const rowInputs = document.querySelectorAll(`#promes-matrix-body input[data-row-idx="${pIdx}"]`);
+    let sum = 0;
+    rowInputs.forEach(input => {
+      const val = Number(input.value) || 0;
+      sum += val;
+    });
+
+    const sumCell = document.querySelector(`#promes-matrix-body .cell-plansum-${pIdx}`);
+    if (sumCell) {
+      sumCell.innerText = sum;
+      if (sum > maxAlokasi) {
+        sumCell.style.color = '#ef4444'; // warning over-allocation
+      } else {
+        sumCell.style.color = 'inherit';
+      }
+    }
+
+    // Recalculate summary row planned total
+    let totalPlan = 0;
+    const allRowPlanSums = document.querySelectorAll('[class^="bg-light fw-bold text-primary font-monospace cell-plansum-"]');
+    allRowPlanSums.forEach(cell => {
+      totalPlan += Number(cell.innerText) || 0;
+    });
+    
+    document.getElementById('promes-total-plan').innerText = totalPlan;
+
+    // Recalculate achievement percentage
+    let totalReal = Number(document.getElementById('promes-total-real').innerText) || 0;
+    const pctCell = document.getElementById('promes-pct-achieved');
+    if (pctCell) {
+      const pct = totalPlan > 0 ? Math.round((totalReal / totalPlan) * 100) : 0;
+      pctCell.innerText = `${pct}% Target`;
+    }
+  }
+
+  async function savePromesMatrix() {
+    const inputs = document.querySelectorAll('#promes-matrix-body .promes-input-cell');
+    const payloads = [];
+
+    inputs.forEach(input => {
+      const protaId = input.getAttribute('data-prota-id');
+      const colKey = input.getAttribute('data-col');
+      const val = input.value.trim();
+
+      if (val !== '') {
+        payloads.push({
+          prota_id: protaId,
+          bulan_minggu: colKey,
+          jp_alokasi: Number(val)
+        });
+      }
+    });
+
+    showSpinner("Menyimpan matriks program semester...");
+    try {
+      await apiCall('savePromesBatch', payloads);
+      showAlert('success', 'Matriks Program Semester (Promes) berhasil disimpan!');
+      await loadProtaPromes();
+    } catch(e) {
+      console.error(e);
+      showAlert('danger', 'Gagal menyimpan Promes: ' + e.message);
+    } finally {
+      hideSpinner();
+    }
+  }
+
+  function openProtaModal() {
+    document.getElementById('prota-form').reset();
+    protaModalObj.show();
+  }
+
+  async function saveProta() {
+    const kd = document.getElementById('prota-kd').value.trim();
+    const jp = document.getElementById('prota-jp').value;
+    const semester = document.getElementById('pp-semester').value;
+    const kelasId = document.getElementById('pp-kelas').value;
+    const mapelId = document.getElementById('pp-mapel').value;
+
+    if (!kd || !jp) {
+      showAlert('warning', 'Kolom wajib diisi!');
+      return;
+    }
+
+    try {
+      await apiCall('createData', 'Prota', {
+        kelas_id: kelasId,
+        mapel_id: mapelId,
+        semester: semester,
+        tujuan_pembelajaran: kd,
+        alokasi_jp: Number(jp)
+      });
+      showAlert('success', 'Tujuan Pembelajaran berhasil disimpan ke Prota!');
+      protaModalObj.hide();
+      await loadProtaPromes();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteProta(id) {
+    if (!confirm('Hapus Tujuan Pembelajaran ini? Data Promes terkait juga akan hilang.')) return;
+    try {
+      await apiCall('deleteData', 'Prota', id);
+      showAlert('success', 'Tujuan Pembelajaran dihapus.');
+      await loadProtaPromes();
+    } catch(e) {
+      console.error(e);
+    }
+  }
+</script>

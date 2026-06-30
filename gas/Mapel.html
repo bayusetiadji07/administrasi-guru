@@ -1,0 +1,167 @@
+<!-- Mapel Page Content -->
+<div class="content-card">
+  <div class="card-title-container">
+    <h4>Daftar Mata Pelajaran & KKM</h4>
+    <button class="btn btn-premium" onclick="openMapelModal()">
+      <i class="fa-solid fa-plus me-1"></i> Tambah Mapel
+    </button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-custom align-middle">
+      <thead>
+        <tr>
+          <th>Kode</th>
+          <th>Nama Mata Pelajaran</th>
+          <th>KKM Minimal</th>
+          <th>Alokasi JP Mingguan</th>
+          <th style="width: 120px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="mapel-table-body">
+        <tr>
+          <td colspan="5" class="text-center">Memuat data mata pelajaran...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Form Mapel -->
+<div class="modal fade" id="mapelModal" tabindex="-1" aria-labelledby="mapelModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mapelModalLabel">Form Mata Pelajaran</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="mapel-form">
+          <input type="hidden" id="mapel-id">
+          <div class="mb-3">
+            <label for="mapel-nama" class="form-label">Nama Mata Pelajaran <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="mapel-nama" required placeholder="Contoh: Matematika">
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="mapel-kkm" class="form-label">Kriteria Ketuntasan Minimal (KKM) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="mapel-kkm" required min="0" max="100" placeholder="75">
+            </div>
+            <div class="col-md-6">
+              <label for="mapel-jp" class="form-label">Alokasi Jam Pelajaran (JP) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="mapel-jp" required min="1" placeholder="4">
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-content-footer p-3 border-top d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-premium" onclick="saveMapel()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let mapelModalObj = null;
+
+  async function initMapel() {
+    mapelModalObj = new bootstrap.Modal(document.getElementById('mapelModal'));
+    await loadMapelTable();
+  }
+
+  async function loadMapelTable() {
+    const tbody = document.getElementById('mapel-table-body');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Memuat data mata pelajaran...</td></tr>';
+    
+    try {
+      const data = await apiCall('readData', 'Mapel');
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Belum ada data mata pelajaran.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach(item => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>${item.id}</strong></td>
+          <td>${item.nama_mapel}</td>
+          <td><span class="badge bg-success font-monospace px-3">${item.kkm}</span></td>
+          <td>${item.jp_mingguan} JP / Minggu</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" onclick="editMapel('${item.id}', '${item.nama_mapel.replace(/'/g, "\\'")}', ${item.kkm}, ${item.jp_mingguan})">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteMapel('${item.id}')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Gagal memuat data mata pelajaran.</td></tr>';
+    }
+  }
+
+  function openMapelModal() {
+    document.getElementById('mapel-form').reset();
+    document.getElementById('mapel-id').value = '';
+    document.getElementById('mapelModalLabel').innerText = 'Tambah Mata Pelajaran Baru';
+    mapelModalObj.show();
+  }
+
+  function editMapel(id, nama, kkm, jp) {
+    document.getElementById('mapel-id').value = id;
+    document.getElementById('mapel-nama').value = nama;
+    document.getElementById('mapel-kkm').value = kkm;
+    document.getElementById('mapel-jp').value = jp;
+    document.getElementById('mapelModalLabel').innerText = 'Edit Mata Pelajaran';
+    mapelModalObj.show();
+  }
+
+  async function saveMapel() {
+    const id = document.getElementById('mapel-id').value;
+    const nama = document.getElementById('mapel-nama').value.trim();
+    const kkm = document.getElementById('mapel-kkm').value;
+    const jp = document.getElementById('mapel-jp').value;
+
+    if (!nama || !kkm || !jp) {
+      showAlert('warning', 'Semua kolom wajib diisi!');
+      return;
+    }
+
+    const payload = {
+      nama_mapel: nama,
+      kkm: Number(kkm),
+      jp_mingguan: Number(jp)
+    };
+
+    try {
+      if (id) {
+        await apiCall('updateData', 'Mapel', id, payload);
+        showAlert('success', 'Mata pelajaran berhasil diperbarui!');
+      } else {
+        await apiCall('createData', 'Mapel', payload);
+        showAlert('success', 'Mata pelajaran baru berhasil ditambahkan!');
+      }
+      mapelModalObj.hide();
+      await loadMapelTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function deleteMapel(id) {
+    if (!confirm('Apakah Anda yakin ingin menghapus mata pelajaran ini?')) return;
+    
+    try {
+      await apiCall('deleteData', 'Mapel', id);
+      showAlert('success', 'Mata pelajaran berhasil dihapus!');
+      await loadMapelTable();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+</script>

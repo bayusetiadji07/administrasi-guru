@@ -1,0 +1,17 @@
+{
+  "name": "administrasi-guru-gas-simulator",
+  "version": "1.0.0",
+  "description": "Simulator lokal untuk WebApp Administrasi Guru berbasis Google Apps Script",
+  "main": "simulator/server.js",
+  "scripts": {
+    "start": "node simulator/server.js",
+    "dev": "node simulator/server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "xlsx": "^0.18.5"
+  },
+  "author": "Antigravity AI",
+  "license": "MIT"
+}

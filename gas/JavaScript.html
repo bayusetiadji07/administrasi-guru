@@ -1,0 +1,225 @@
+<script>
+  // Unified API call wrapper (handles local simulator and GAS environments)
+  function apiCall(funcName, ...args) {
+    showSpinner("Menghubungi server...");
+    return new Promise((resolve, reject) => {
+      if (window.IS_SIMULATOR) {
+        fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ functionName: funcName, args: args })
+        })
+        .then(res => {
+          if (!res.ok) throw new Error("HTTP error " + res.status);
+          return res.json();
+        })
+        .then(res => {
+          hideSpinner();
+          if (res.success) resolve(res.data);
+          else reject(new Error(res.error));
+        })
+        .catch(err => {
+          hideSpinner();
+          showAlert("danger", "Koneksi simulator gagal: " + err.message);
+          reject(err);
+        });
+      } else {
+        google.script.run
+          .withSuccessHandler(res => {
+            hideSpinner();
+            resolve(res);
+          })
+          .withFailureHandler(err => {
+            hideSpinner();
+            showAlert("danger", "Gagal: " + err);
+            reject(new Error(err));
+          })[funcName].apply(google.script.run, args);
+      }
+    });
+  }
+
+  // Global UI states & helpers
+  function showSpinner(text) {
+    document.getElementById('spinner-text').innerText = text || "Memuat data...";
+    document.getElementById('global-spinner').style.display = 'flex';
+  }
+
+  function hideSpinner() {
+    document.getElementById('global-spinner').style.display = 'none';
+  }
+
+  function showAlert(type, message) {
+    // Standard alert implementation
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-4 shadow-lg`;
+    alertDiv.style.zIndex = "99999";
+    alertDiv.style.minWidth = "300px";
+    alertDiv.innerHTML = `
+      <span>${message}</span>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alertDiv);
+      bsAlert.close();
+    }, 4000);
+  }
+
+  function downloadFile(fileData) {
+    const byteCharacters = atob(fileData.base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: fileData.mimeType });
+    
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileData.fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Routing SPA Menu Switcher
+  function switchMenu(menuName) {
+    // Update active nav link
+    const buttons = document.querySelectorAll('.nav-item-btn');
+    buttons.forEach(btn => {
+      if (btn.innerText.toLowerCase().includes(menuName)) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    // Hide all sections, show active section
+    const sections = document.querySelectorAll('.menu-section');
+    sections.forEach(sec => {
+      sec.classList.add('d-none');
+    });
+    
+    const activeSection = document.getElementById(`section-${menuName}`);
+    if (activeSection) {
+      activeSection.classList.remove('d-none');
+    }
+
+    // Set page title
+    const titles = {
+      'dashboard': 'Dashboard & Ringkasan',
+      'kelas': 'Manajemen Data Kelas',
+      'siswa': 'Manajemen Data Siswa',
+      'mapel': 'Pengaturan Mata Pelajaran',
+      'jurnal': 'Jurnal Mengajar & Presensi',
+      'perencanaan': 'RPE, Prota & Promes',
+      'nilai': 'Daftar Nilai Siswa',
+      'jadwal': 'Jadwal Mengajar Roster',
+      'analitik': 'Visualisasi & Analitik Grafis',
+      'settings': 'Pengaturan Global',
+      'cetak': 'Cetak & Ekspor Dokumen'
+    };
+    document.getElementById('page-title').innerText = titles[menuName] || 'Administrasi Guru';
+
+    // Call init routines
+    if (menuName === 'dashboard') initDashboard();
+    else if (menuName === 'kelas') initKelas();
+    else if (menuName === 'siswa') initSiswa();
+    else if (menuName === 'mapel') initMapel();
+    else if (menuName === 'jurnal') initJurnal();
+    else if (menuName === 'perencanaan') initPerencanaan();
+    else if (menuName === 'nilai') initNilai();
+    else if (menuName === 'jadwal') initJadwal();
+    else if (menuName === 'analitik') initAnalitik();
+    else if (menuName === 'settings') initSettings();
+    else if (menuName === 'cetak') initCetak();
+  }
+
+  // Initialization & Globals
+  window.addEventListener('DOMContentLoaded', () => {
+    // Set date today
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const today = new Date();
+    const formattedDate = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+    document.getElementById('nav-today-date').innerText = formattedDate;
+
+    // Load initial settings and stats
+    initDashboard();
+  });
+
+  // Global Dashboard Loader
+  async function initDashboard() {
+    try {
+      const data = await apiCall('getDashboardSummary');
+      
+      // Update Navbar & Sidebar profile
+      document.getElementById('nav-teacher-name').innerText = data.teacherName;
+      document.getElementById('nav-teacher-nip').innerText = 'NIP. ' + data.nip;
+      document.getElementById('top-teacher-name').innerText = data.teacherName;
+      document.getElementById('nav-academic-period').innerText = `Tahun Ajaran: ${data.tahunAjaran} | Semester: ${data.semester}`;
+      
+      const initials = data.teacherName ? data.teacherName.split(' ').map(n => n[0]).slice(0,2).join('') : 'G';
+      document.getElementById('avatar-initials').innerText = initials.toUpperCase();
+
+      // Update stat cards if dashboard is active
+      const totalKelas = document.getElementById('stat-total-kelas');
+      if (totalKelas) totalKelas.innerText = data.totalKelas;
+      
+      const totalSiswa = document.getElementById('stat-total-siswa');
+      if (totalSiswa) totalSiswa.innerText = data.totalSiswa;
+
+      const totalMapel = document.getElementById('stat-total-mapel');
+      if (totalMapel) totalMapel.innerText = data.totalMapel;
+
+      const scheduleToday = document.getElementById('stat-jadwal-hari-ini');
+      if (scheduleToday) scheduleToday.innerText = data.scheduleToday + " Jam";
+
+      const attRate = document.getElementById('stat-persentase-kehadiran');
+      if (attRate) attRate.innerText = data.attendanceRate + "%";
+      
+      // Load recent logs in dashboard
+      loadRecentDashboardLogs();
+    } catch (e) {
+      console.error("Gagal memuat ringkasan dashboard", e);
+    }
+  }
+
+  async function loadRecentDashboardLogs() {
+    const listBody = document.getElementById('dashboard-recent-jurnal');
+    if (!listBody) return;
+    
+    try {
+      listBody.innerHTML = '<tr><td colspan="4" class="text-center">Memuat agenda terbaru...</td></tr>';
+      const journals = await apiCall('readData', 'Jurnal');
+      const classes = await apiCall('readData', 'Kelas');
+      const mapels = await apiCall('readData', 'Mapel');
+
+      if (journals.length === 0) {
+        listBody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada agenda mengajar.</td></tr>';
+        return;
+      }
+
+      // Sort recent first
+      journals.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
+      const recent = journals.slice(0, 5);
+
+      listBody.innerHTML = '';
+      recent.forEach((j, idx) => {
+        const cls = classes.find(c => c.id === j.kelas_id)?.nama_kelas || '-';
+        const mpl = mapels.find(m => m.id === j.mapel_id)?.nama_mapel || '-';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${j.tanggal}</td>
+          <td><span class="badge bg-primary">${cls}</span></td>
+          <td><strong>${mpl}</strong></td>
+          <td>${j.materi}</td>
+        `;
+        listBody.appendChild(row);
+      });
+    } catch(e) {
+      listBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Gagal memuat agenda.</td></tr>';
+    }
+  }
+</script>

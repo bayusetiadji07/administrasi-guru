@@ -1,0 +1,101 @@
+<!-- Dashboard Content -->
+<div class="row g-4 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div>
+        <span class="text-muted small uppercase d-block mb-1">Total Kelas</span>
+        <h3 class="mb-0 fw-bold" id="stat-total-kelas">-</h3>
+      </div>
+      <div class="stat-icon primary">
+        <i class="fa-solid fa-school"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div>
+        <span class="text-muted small uppercase d-block mb-1">Total Siswa</span>
+        <h3 class="mb-0 fw-bold" id="stat-total-siswa">-</h3>
+      </div>
+      <div class="stat-icon secondary">
+        <i class="fa-solid fa-users"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div>
+        <span class="text-muted small uppercase d-block mb-1">Mata Pelajaran</span>
+        <h3 class="mb-0 fw-bold" id="stat-total-mapel">-</h3>
+      </div>
+      <div class="stat-icon warning">
+        <i class="fa-solid fa-book"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div>
+        <span class="text-muted small uppercase d-block mb-1">Presensi Bulan Ini</span>
+        <h3 class="mb-0 fw-bold" id="stat-persentase-kehadiran">-</h3>
+      </div>
+      <div class="stat-icon success">
+        <i class="fa-solid fa-square-check"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent logs table -->
+  <div class="col-lg-8">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Jurnal Agenda Terakhir</h4>
+        <button class="btn btn-sm btn-premium" onclick="switchMenu('jurnal')">
+          <i class="fa-solid fa-plus me-1"></i> Jurnal Baru
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-custom align-middle">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Kelas</th>
+              <th>Mata Pelajaran</th>
+              <th>Materi</th>
+            </tr>
+          </thead>
+          <tbody id="dashboard-recent-jurnal">
+            <tr>
+              <td colspan="4" class="text-center">Memuat agenda...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions / Info Card -->
+  <div class="col-lg-4">
+    <div class="content-card">
+      <div class="card-title-container">
+        <h4>Akses Cepat</h4>
+      </div>
+      <div class="d-grid gap-2">
+        <button class="btn btn-secondary-custom text-start py-3" onclick="switchMenu('jurnal')">
+          <i class="fa-solid fa-clipboard-list text-primary me-2"></i> Input Jurnal & Absensi
+        </button>
+        <button class="btn btn-secondary-custom text-start py-3" onclick="switchMenu('nilai')">
+          <i class="fa-solid fa-file-invoice text-success me-2"></i> Input Daftar Nilai Siswa
+        </button>
+        <button class="btn btn-secondary-custom text-start py-3" onclick="switchMenu('perencanaan')">
+          <i class="fa-solid fa-calendar-days text-warning me-2"></i> Rincian Pekan Efektif (RPE)
+        </button>
+        <button class="btn btn-secondary-custom text-start py-3" onclick="switchMenu('cetak')">
+          <i class="fa-solid fa-print text-info me-2"></i> Ekspor Excel & PDF Resmi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
