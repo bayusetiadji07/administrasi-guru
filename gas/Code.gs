@@ -768,7 +768,6 @@ function analyzeNilaiData(nilai, siswa, mapel, settings) {
     return { hasData: false };
   }
 }
-}
 
 /**
  * Ekspor Data ke Excel (.xlsx).
