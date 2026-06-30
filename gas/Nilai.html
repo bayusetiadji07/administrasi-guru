@@ -50,14 +50,14 @@
 
       <div class="table-responsive">
         <table class="table table-bordered spreadsheet-table align-middle table-sm">
-          <thead id="gradebook-header" class="table-dark">
+          <thead id="gradebook-header" class="table-light">
             <tr>
-              <th class="text-start" style="min-width: 180px;">Nama Siswa</th>
-              <th style="width: 80px;">Tugas</th>
-              <th style="width: 80px;">Formatif</th>
-              <th style="width: 80px;">Sumatif</th>
-              <th style="width: 80px;">PAS</th>
-              <th style="width: 100px;" class="bg-secondary">Rata-rata</th>
+              <th class="text-start text-dark fw-bold" style="min-width: 180px;">Nama Siswa</th>
+              <th class="text-dark fw-bold" style="width: 80px;">Tugas</th>
+              <th class="text-dark fw-bold" style="width: 80px;">Formatif</th>
+              <th class="text-dark fw-bold" style="width: 80px;">Sumatif</th>
+              <th class="text-dark fw-bold" style="width: 80px;">PAS</th>
+              <th class="text-dark fw-bold bg-light" style="width: 100px;">Rata-rata</th>
             </tr>
           </thead>
           <tbody id="gradebook-tbody">
@@ -208,16 +208,16 @@
 
   function rebuildGradebookHeader() {
     const header = document.getElementById('gradebook-header');
-    let headerHtml = `<tr><th class="text-start" style="min-width: 180px;">Nama Siswa</th>`;
+    let headerHtml = `<tr><th class="text-start text-dark fw-bold" style="min-width: 180px;">Nama Siswa</th>`;
 
     if (asesmenColumns.length === 0) {
-      headerHtml += `<th class="text-muted">-</th>`;
+      headerHtml += `<th class="text-dark fw-bold">-</th>`;
     } else {
       asesmenColumns.forEach(col => {
-        headerHtml += `<th style="width: 80px;">${col}</th>`;
+        headerHtml += `<th class="text-dark fw-bold" style="width: 80px;">${col}</th>`;
       });
     }
-    headerHtml += `<th style="width: 100px;" class="bg-secondary">Rata-rata</th></tr>`;
+    headerHtml += `<th class="text-dark fw-bold bg-light" style="width: 100px;">Rata-rata</th></tr>`;
     header.innerHTML = headerHtml;
 
     const tbody = document.getElementById('gradebook-tbody');
@@ -275,12 +275,12 @@
     if (!classId || !mapelId) {
       header.innerHTML = `
         <tr>
-          <th class="text-start" style="min-width: 180px;">Nama Siswa</th>
-          <th style="width: 80px;">Tugas</th>
-          <th style="width: 80px;">Formatif</th>
-          <th style="width: 80px;">Sumatif</th>
-          <th style="width: 80px;">PAS</th>
-          <th style="width: 100px;" class="bg-secondary">Rata-rata</th>
+          <th class="text-start text-dark fw-bold" style="min-width: 180px;">Nama Siswa</th>
+          <th class="text-dark fw-bold" style="width: 80px;">Tugas</th>
+          <th class="text-dark fw-bold" style="width: 80px;">Formatif</th>
+          <th class="text-dark fw-bold" style="width: 80px;">Sumatif</th>
+          <th class="text-dark fw-bold" style="width: 80px;">PAS</th>
+          <th class="text-dark fw-bold bg-light" style="width: 100px;">Rata-rata</th>
         </tr>`;
       tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4"><i class="fa-solid fa-arrow-pointer me-2"></i>Pilih Kelas dan Mata Pelajaran</td></tr>`;
       document.getElementById('btn-save-nilai').disabled = true;
@@ -301,11 +301,11 @@
     kkmSpan.innerText = `KKM: ${currentMapelKkm}`;
 
     // Build header
-    let headerHtml = `<tr><th class="text-start" style="min-width: 180px;">Nama Siswa</th>`;
+    let headerHtml = `<tr><th class="text-start text-dark fw-bold" style="min-width: 180px;">Nama Siswa</th>`;
     asesmenColumns.forEach(col => {
-      headerHtml += `<th style="width: 80px;">${col}</th>`;
+      headerHtml += `<th class="text-dark fw-bold" style="width: 80px;">${col}</th>`;
     });
-    headerHtml += `<th style="width: 100px;" class="bg-secondary">Rata-rata</th></tr>`;
+    headerHtml += `<th class="text-dark fw-bold bg-light" style="width: 100px;">Rata-rata</th></tr>`;
     header.innerHTML = headerHtml;
 
     const colCount = asesmenColumns.length + 2;
