@@ -35,16 +35,29 @@ function getDb() {
 }
 
 /**
- * Inisialisasi Database Sheet dan Data Awal jika belum ada.
+ * Inisialisasi Database Sheet dan Data Awal - BERSIHKAN SEMUA DATA.
+ * Jalankan fungsi ini untuk mereset database ke kondisi kosong.
  */
 function initDatabase() {
   var ss = getDb();
+  var allSheets = ss.getSheets();
+
+  // Hapus semua sheet yang ada
+  for (var i = 0; i < allSheets.length; i++) {
+    try {
+      ss.deleteSheet(allSheets[i]);
+    } catch(e) {
+      console.log('Tidak dapat menghapus sheet: ' + allSheets[i].getName());
+    }
+  }
+
+  // Buat ulang semua sheet dengan header kosong
   var sheets = {
     'Kelas': ['id', 'nama_kelas', 'wali_kelas', 'keterangan'],
     'Siswa': ['id', 'nis', 'nisn', 'nama_siswa', 'kelas_id', 'jenis_kelamin'],
     'Mapel': ['id', 'nama_mapel', 'kkm', 'jp_mingguan'],
     'Kaldik': ['tanggal', 'keterangan', 'kategori'],
-    'Prota': ['id', 'mapel_id', 'kelas_id', 'semester', 'tujuan_pembelajaran', 'alokasi_jp', 'keterangan'],
+    'Prota': ['id', 'mapel_id', 'kelas_id', 'semester', 'tujuan_pembelajaran', 'alokasi_jp'],
     'Promes': ['id', 'prota_id', 'bulan_minggu', 'jp_alokasi'],
     'Rpe': ['id', 'mapel_id', 'kelas_id', 'semester', 'data_json'],
     'Jurnal': ['id', 'tanggal', 'kelas_id', 'mapel_id', 'materi', 'kegiatan_pembelajaran', 'hambatan', 'solusi'],
@@ -55,35 +68,17 @@ function initDatabase() {
   };
 
   for (var name in sheets) {
-    var sheet = ss.getSheetByName(name);
-    if (!sheet) {
-      sheet = ss.insertSheet(name);
-      sheet.appendRow(sheets[name]);
-      
-      // Styling header
-      var range = sheet.getRange(1, 1, 1, sheets[name].length);
-      range.setFontWeight('bold');
-      range.setBackground('#4F46E5');
-      range.setFontColor('#FFFFFF');
-    }
+    var sheet = ss.insertSheet(name);
+    sheet.appendRow(sheets[name]);
+
+    // Styling header
+    var range = sheet.getRange(1, 1, 1, sheets[name].length);
+    range.setFontWeight('bold');
+    range.setBackground('#4F46E5');
+    range.setFontColor('#FFFFFF');
   }
-  
-  // Set default settings if empty
-  var settingsSheet = ss.getSheetByName('Settings');
-  var settingsData = readData('Settings');
-  if (settingsData.length === 0) {
-    var defaults = [
-      { key: 'tahun_ajaran', value: '2026/2027' },
-      { key: 'semester', value: 'Ganjil' },
-      { key: 'nama_guru', value: 'Guru Administrasi' },
-      { key: 'nip', value: '-' }
-    ];
-    defaults.forEach(function(item) {
-      createData('Settings', item);
-    });
-  }
-  
-  return "Database berhasil diinisialisasi!";
+
+  return "Database berhasil di-reset ke kondisi kosong!";
 }
 
 /**
