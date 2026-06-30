@@ -977,9 +977,6 @@ function generateDocxOrPdfExport(menuName, targetKelas, formatType, mapelId, tan
   } else if (menuName === 'Prota') {
     docTitle = 'PROGRAM TAHUNAN';
   }
-  } else if (menuName === 'Prota') {
-    docTitle = 'PROGRAM TAHUNAN';
-  }
   var titlePara = body.appendParagraph(docTitle);
   titlePara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
   titlePara.setFontSize(14);
